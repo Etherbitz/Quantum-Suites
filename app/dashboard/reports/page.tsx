@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { hasFeature } from "@/lib/featureAccess";
+import type { Plan } from "@/lib/plans";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 
 /**
@@ -29,7 +30,7 @@ export default async function ReportsPage() {
         description="Run your first scan to generate compliance reports."
       />
 
-      {user && hasFeature(user.plan, "auditTrail") && (
+      {user && hasFeature(user.plan as Plan, "auditTrail") && (
         <div className="mt-6">
           <button className="rounded bg-blue-600 px-4 py-2 text-white">
             Download Audit Trail

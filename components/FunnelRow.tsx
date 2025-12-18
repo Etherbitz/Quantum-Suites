@@ -1,5 +1,8 @@
 import { hasFeature } from "@/lib/featureAccess";
+import type { Plan } from "@/lib/plans";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
+
+type PlanFeature = keyof typeof import("@/lib/plans").PLANS.free;
 
 /**
  * Displays a single funnel stage row.
@@ -15,15 +18,15 @@ export function FunnelRow({
   label: string;
   count: number;
   conversionRate: number | null;
-  featureKey?: string;
+  featureKey?: PlanFeature;
   user?: any;
   reason?: string;
 }) {
-  if (featureKey && user && hasFeature(user.plan, featureKey)) {
+  if (featureKey && user && hasFeature(user.plan as Plan, featureKey)) {
     return null;
   }
 
-  if (featureKey && user && !hasFeature(user.plan, featureKey)) {
+  if (featureKey && user && !hasFeature(user.plan as Plan, featureKey)) {
     return <UpgradeCTA reason={reason || `${label} is available on higher plans.`} />;
   }
 

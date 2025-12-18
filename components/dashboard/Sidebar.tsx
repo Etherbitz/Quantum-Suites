@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { hasFeature } from "@/lib/featureAccess";
+import type { Plan } from "@/lib/plans";
 import { UsageMeter } from "@/components/UsageMeter";
 
 /**
@@ -27,8 +28,8 @@ export function Sidebar() {
   ];
 
   const gatedNavItems = [
-    ...(user && hasFeature(user.plan, "continuousMonitoring") ? [{ label: "Monitoring", href: "/dashboard/monitoring" }] : []),
-    ...(user && hasFeature(user.plan, "changeAlerts") ? [{ label: "Alerts", href: "/dashboard/alerts" }] : []),
+    ...(user && hasFeature(user.plan as Plan, "continuousMonitoring") ? [{ label: "Monitoring", href: "/dashboard/monitoring" }] : []),
+    ...(user && hasFeature(user.plan as Plan, "changeAlerts") ? [{ label: "Alerts", href: "/dashboard/alerts" }] : []),
   ];
 
   return (

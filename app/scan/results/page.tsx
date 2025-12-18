@@ -5,6 +5,7 @@ import { LockedSection } from "@/components/LockedSection";
 import { UsageMeter } from "@/components/UsageMeter";
 import { PLANS } from "@/lib/plans";
 import { hasFeature } from "@/lib/featureAccess";
+import type { Plan } from "@/lib/plans";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
 
 
@@ -23,7 +24,7 @@ export default async function ScanResultsPage({
   const { userId } = await auth();
   const clerkUser = userId ? await currentUser() : null;
 
-  let plan: "free" | "pro" = "free";
+  let plan: Plan = "free";
   let dbUserId: string | null = null;
 
   if (userId && clerkUser?.emailAddresses?.[0]?.emailAddress) {
@@ -80,12 +81,12 @@ export default async function ScanResultsPage({
       )}
 
       {/* AI Suggestions (plan-gated) */}
-      {user && hasFeature(user.plan, "suggestions") ? (
+      {dbUserId && hasFeature(plan, "suggestions") ? (
         <section>
           <h2 className="text-xl font-semibold">AI Suggestions</h2>
           <p>Placeholder for AI suggestions panel.</p>
         </section>
-      ) : user && (
+      ) : dbUserId && (
         <UpgradeCTA reason="AI suggestions are available on Business plans." />
       )}
 

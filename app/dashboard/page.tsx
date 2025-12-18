@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { hasFeature } from "@/lib/featureAccess";
+import type { Plan } from "@/lib/plans";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ComplianceScore } from "@/components/dashboard/ComplianceScore";
 import { ScanTable } from "@/components/dashboard/ScanTable";
@@ -31,7 +32,7 @@ export default async function DashboardPage() {
         <MetricCard label="Risk Level" value="Medium" accent="amber" />
         <MetricCard label="Issues" value="7" />
         <MetricCard label="Last Scan" value="2h ago" />
-        {user && hasFeature(user.plan, "changeAlerts") && (
+        {user && hasFeature(user.plan as Plan, "changeAlerts") && (
           <MetricCard label="Change Alerts" value="Enabled" />
         )}
       </section>

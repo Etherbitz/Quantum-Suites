@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-export function UpgradeCTA() {
+export function UpgradeCTA({ reason }: { reason?: string }) {
   return (
     <div className="rounded bg-muted p-3 text-sm text-center space-y-2">
       <p className="font-medium">
-        You’ve reached your plan limit.
+        {reason || "You’ve reached your plan limit."}
       </p>
       <Link
         href="/pricing"
