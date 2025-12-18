@@ -8,6 +8,18 @@ import { hasFeature } from "@/lib/featureAccess";
 import type { Plan } from "@/lib/plans";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
 
+interface ScanResult {
+  id: string;
+  userId: string | null;
+  url: string;
+  score: number;
+  riskLevel: string;
+  summaryIssues: string[];
+  allIssues: any;
+  createdAt: Date;
+  user?: { id: string; plan: string } | null;
+}
+
 
 export default async function ScanResultsPage({
   searchParams,
@@ -42,7 +54,7 @@ export default async function ScanResultsPage({
   // -----------------------------
   // Fetch scan
   // -----------------------------
-  const scan = await prisma.scan.findUnique({
+  const scan: ScanResult | null = await prisma.scan.findUnique({
     where: { id: searchParams.scanId },
   });
 
@@ -66,10 +78,10 @@ export default async function ScanResultsPage({
       <section>
         <h2 className="text-xl font-semibold">Scan Summary</h2>
         <ul className="list-disc pl-5">
-      {scan.summaryIssues.map((issue, i) => (
-    <li key={i}>{issue}</li>
-        ))}
-      </ul>
+          {(scan.summaryIssues ?? []).map((issue: string, i: number) => (
+            <li key={i}>{issue}</li>
+          ))}
+        </ul>
       </section>
 
       {/* Detailed report (plan-gated) */}
