@@ -54,7 +54,7 @@ export function IssuesList({ issues }: IssuesListProps) {
           className={`rounded-lg border p-4 ${getBgColor(issue.severity)}`}
         >
           <div className="flex gap-3">
-            <div className="flex-shrink-0 mt-0.5">{getIcon(issue.severity)}</div>
+            <div className="shrink-0 mt-0.5">{getIcon(issue.severity)}</div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-semibold uppercase text-gray-600">

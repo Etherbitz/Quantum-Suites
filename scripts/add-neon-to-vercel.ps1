@@ -16,11 +16,11 @@ if ([string]::IsNullOrWhiteSpace($DATABASE_URL)) {
 
 Write-Host ""
 Write-Host "Adding DATABASE_URL to Vercel (production)..." -ForegroundColor Yellow
-echo $DATABASE_URL | vercel env add DATABASE_URL production
+Write-Output $DATABASE_URL | vercel env add DATABASE_URL production
 
 Write-Host ""
 Write-Host "Adding DIRECT_DATABASE_URL to Vercel (production)..." -ForegroundColor Yellow
-echo $DATABASE_URL | vercel env add DIRECT_DATABASE_URL production
+Write-Output $DATABASE_URL | vercel env add DIRECT_DATABASE_URL production
 
 Write-Host ""
 Write-Host "✅ Database URLs added successfully!" -ForegroundColor Green
