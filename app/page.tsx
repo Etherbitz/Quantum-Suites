@@ -133,17 +133,21 @@ function ProblemSection() {
  */
 function HowItWorksSection() {
   return (
-    <section className="bg-black px-6 py-20">
+    <section className="px-6 py-20">
       <div className="mx-auto max-w-6xl text-center">
-        <h2 className="text-3xl font-bold text-orange-400 mb-4">
+        <h2 className="text-3xl font-semibold text-orange-400">
           How Quantum Suites AI Protects You
         </h2>
-        
-        <p className="text-gray-300 mb-12">
-          We analyze your site for common accessibility and compliance risks.
-        </p>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="
+              rounded-2xl
+              bg-white
+              border border-gray-200
+              shadow-sm
+              p-6
+              transition
+              hover:shadow-md
+              hover:-translate-y-0.5">
           <StepCard
             title="Scan Your Website"
             description="We analyze your site for common accessibility and compliance risks."
@@ -158,8 +162,8 @@ function HowItWorksSection() {
           />
         </div>
 
-        <p className="mt-12 font-bold text-emerald-400 text-lg">
-          " No code • No setup • No guesswork
+        <p className="mt-12 font-bold text-emerald-900"> "
+          No code • No setup • No guesswork
         </p>
       </div>
     </section>
@@ -201,10 +205,9 @@ function MonitoringSection() {
  */
 function PricingSection() {
   return (
-    <section className="px-6 py-24 bg-gradient-to-b from-gray-50 to-white">
+    <section className="px-6 py-24">
       <div className="mx-auto max-w-7xl text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-3">Simple, Transparent Pricing</h2>
-        <p className="text-gray-600 text-lg mb-14">Choose the plan that fits your needs</p>
+        <h2 className="text-3xl font-semibold">Pricing</h2>
 
         <div className="mt-14 grid gap-8 md:grid-cols-3">
           <PricingCard
@@ -297,9 +300,9 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border-2 border-gray-700 p-8 bg-gray-900 text-left hover:border-orange-400 transition-all hover:scale-105">
-      <h3 className="text-lg font-bold text-white mb-3">{title}</h3>
-      <p className="text-gray-300 text-sm leading-relaxed">{description}</p>
+    <div className="rounded-xl border p-6 bg-white">
+      <h3 className="font-semibold">{title}</h3>
+      <p className="mt-2 text-gray-600">{description}</p>
     </div>
   );
 }
@@ -320,64 +323,26 @@ function PricingCard({
   features: string[];
   highlight?: boolean;
 }) {
-  const handleUpgrade = () => {
-    // For free plan, go to scan page
-    if (title === "Starter" || title === "Business") {
-      window.location.href = "/pricing";
-    } else if (title === "Agency") {
-      // Coming soon - do nothing or show modal
-      return;
-    } else {
-      // Free/default - go to scan
-      window.location.href = "/scan";
-    }
-  };
-
   return (
-    <div className="relative">
-      <div
-        className={`rounded-2xl border-2 p-8 transition-all hover:scale-105 hover:shadow-2xl ${
-          highlight 
-            ? "border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-xl scale-105" 
-            : "border-gray-200 bg-white shadow-lg"
-        }`}
-      >
-      {highlight && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-600 text-white text-sm font-bold rounded-full">
-          MOST POPULAR
-        </div>
-      )}
-      <div className="relative">
-        <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-        <p className="mt-2 text-sm text-gray-600">{subtitle}</p>
-        <div className="mt-6 mb-8">
-          <span className="text-5xl font-bold text-gray-900">{price.includes('$') ? price.split('/')[0] : price}</span>
-          {price.includes('/') && <span className="text-gray-600 text-lg">/month</span>}
-        </div>
+    <div
+      className={`rounded-2xl border p-8 ${
+        highlight ? "border-blue-600 bg-blue-50" : "bg-white"
+      }`}
+    >
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="mt-2 text-gray-600">{subtitle}</p>
+      <p className="mt-6 text-3xl font-semibold">{price}</p>
 
-        <ul className="space-y-4 text-left text-gray-700 mb-8">
-          {features.map((feature) => (
-            <li key={feature} className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
+      <ul className="mt-6 space-y-3 text-left text-gray-700">
+        {features.map((feature) => (
+          <li key={feature}>• {feature}</li>
+        ))}
+      </ul>
 
-        <button
-          onClick={handleUpgrade}
-          className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all ${
-            highlight
-              ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
-              : "bg-gray-900 text-white hover:bg-gray-800"
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={title === "Agency"}
-        >
-          {title === "Agency" ? "Coming Soon" : "Get Started"}
-        </button>
-      </div>
+      <div className="mt-8">
+        <PrimaryButton fullWidth>
+          Start Free Scan
+        </PrimaryButton>
       </div>
     </div>
   );
