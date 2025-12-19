@@ -1,5 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { SecondaryButton } from "@/components/SecondaryButton";  
+import { trackEvent } from "@/lib/analytics/track";   
 
 /**
  * Home page for Quantum Suites AI.
@@ -25,46 +29,40 @@ export default function HomePage() {
 /**
  * Hero section introducing the product and primary call-to-action.
  */
-import Link from "next/link";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { SecondaryButton } from "@/components/SecondaryButton";  
-import { trackEvent } from "@/lib/analytics/track";   
-
-
 function HeroSection() {
   return (
     <section className="px-6 py-24">
       <div className="mx-auto max-w-7xl grid gap-12 md:grid-cols-2 items-center">
         {/* Copy */}
         <div>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-cyan-600">
-            Automated Website Compliance & Risk Monitoring
-            <span className="block mt-2  text-indigo-300 ">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+            <span className="bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+              Automated Website Compliance & Risk Monitoring
+            </span>
+            <span className="block mt-3 text-3xl md:text-4xl text-gray-700">
               for Small Businesses
             </span>
           </h1>
 
-          <p className="mt-6 text-lg text-indigo-300 max-w-xl">
+          <p className="mt-6 text-xl text-gray-600 max-w-xl leading-relaxed">
             Know where you stand. Reduce legal exposure. Stay compliant
             automatically — without legal or technical complexity.
           </p>
 
-                {/* CTAs */}
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <Link href="/scan">
-                    <PrimaryButton>
-                      Scan My Website — Free
-                    </PrimaryButton>
-                  </Link>
+          {/* CTAs */}
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href="/scan">
+              <PrimaryButton>
+                Scan My Website — Free
+              </PrimaryButton>
+            </Link>
 
-                  <Link href="/pricing">
-                    <SecondaryButton>
-                      View Pricing
-                    </SecondaryButton>
-                  </Link>
-                </div>
-
-
+            <Link href="/pricing">
+              <SecondaryButton>
+                View Pricing
+              </SecondaryButton>
+            </Link>
+          </div>
 
           <p className="mt-3 text-sm text-gray-500">
             No credit card required • Takes under 60 seconds
@@ -73,8 +71,20 @@ function HeroSection() {
 
         {/* Product Preview Placeholder */}
         <div className="hidden md:flex items-center justify-center">
-          <div className="h-80 w-full rounded-2xl border bg-gray-50 flex items-center justify-center text-gray-400">
-            Compliance Dashboard Preview
+          <div className="h-80 w-full rounded-2xl border-2 border-blue-200 bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col items-center justify-center text-gray-700 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-12 bg-linear-to-r from-blue-600 to-indigo-600 flex items-center px-4 gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-400"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+            </div>
+            <div className="mt-8 text-center">
+              <div className="text-6xl font-bold text-green-600 mb-2">95</div>
+              <div className="text-sm font-semibold text-gray-600">Compliance Score</div>
+              <div className="mt-4 flex gap-2">
+                <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Low Risk</div>
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Protected</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -87,41 +97,40 @@ function HeroSection() {
  */
 function ProblemSection() {
   return (
-    <section className="bg-gray-50 px-6 py-20">
+    <section className="bg-linear-to-b from-gray-50 to-white px-6 py-20">
       <div className="mx-auto max-w-5xl text-center">
-        <h2 className="
-                rounded-xl
-                border border-red-300
-                bg-blue-50
-                p-6
-                shadow-sm font-bold text-red-600">
-          Most Small Business Websites Are Legally Exposed
-        </h2>
-
-        <p className="mt-3 text-shadow-black">
-          And most owners don’t know it until it becomes a problem.
-        </p>
-
-          <div className="
-            rounded-2xl
-            bg-white
-            border border-gray-200
-            shadow-sm
-            p-6
-            mt-10
-            grid gap-6
-            md:grid-cols-3
-            text-gray-700
-            
-            ">
-          <InfoCard text="Accessibility regulations are increasing" />
-          <InfoCard text="Demand letters and lawsuits are becoming more common" />
-          <InfoCard text="Most websites fail basic compliance checks without warning" />
+        <div className="inline-block">
+          <div className="rounded-2xl border-2 border-red-400 bg-linear-to-br from-red-50 to-orange-50 px-8 py-6 shadow-xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-red-600">
+              ⚠️ Most Small Business Websites Are Legally Exposed
+            </h2>
+          </div>
         </div>
 
-        <p className="mt-10 text-gray-700">
-          You shouldn’t need to become a legal or technical expert to protect
-          your business.
+        <p className="mt-6 text-xl text-gray-700 font-medium">
+          And most owners don't know it until it becomes a problem.
+        </p>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <RiskCard 
+            icon="📈"
+            title="Accessibility regulations are increasing"
+            gradient="from-blue-500 to-cyan-500"
+          />
+          <RiskCard 
+            icon="⚖️"
+            title="Demand letters and lawsuits are becoming more common"
+            gradient="from-purple-500 to-pink-500"
+          />
+          <RiskCard 
+            icon="🔍"
+            title="Most websites fail basic compliance checks without warning"
+            gradient="from-orange-500 to-red-500"
+          />
+        </div>
+
+        <p className="mt-12 text-lg text-gray-700 font-medium">
+          You shouldn't need to become a legal or technical expert to protect your business.
         </p>
       </div>
     </section>
@@ -171,25 +180,40 @@ function HowItWorksSection() {
  */
 function MonitoringSection() {
   return (
-    <section className="bg-gray-50 px-6 py-20">
+    <section className="bg-linear-to-b from-gray-900 to-black px-6 py-20">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-3xl font-semibold text-center">
+        <h2 className="text-4xl font-bold text-center text-white mb-4">
           What We Monitor
         </h2>
+        <p className="text-center text-gray-400 text-lg mb-12">Comprehensive protection across all compliance areas</p>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-2 text-gray-700">
-          <ul className="space-y-4">
-            <li>• Website accessibility issues</li>
-            <li>• Structural compliance risks</li>
-            <li>• Changes that increase legal exposure</li>
-            <li>• Ongoing compliance drift</li>
-          </ul>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <MonitorCard 
+            icon="♿"
+            title="Website accessibility issues"
+            color="blue"
+          />
+          <MonitorCard 
+            icon="🏗️"
+            title="Structural compliance risks"
+            color="purple"
+          />
+          <MonitorCard 
+            icon="⚡"
+            title="Changes that increase legal exposure"
+            color="orange"
+          />
+          <MonitorCard 
+            icon="📊"
+            title="Ongoing compliance drift"
+            color="green"
+          />
+        </div>
 
-          <ul className="space-y-4">
-            <li>• What’s at risk</li>
-            <li>• What changed</li>
-            <li>• What needs attention</li>
-          </ul>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <ReportCard icon="🎯" text="What's at risk" />
+          <ReportCard icon="📝" text="What changed" />
+          <ReportCard icon="🔔" text="What needs attention" />
         </div>
       </div>
     </section>
@@ -275,16 +299,50 @@ function FinalCTASection() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Generic informational card.
+ * Risk warning card with gradient and icon.
  */
-function InfoCard({ text }: { text: string }) {
+function RiskCard({ icon, title, gradient }: { icon: string; title: string; gradient: string }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <p className="text-gray-800">{text}</p>
+    <div className="group relative rounded-2xl bg-white border-2 border-gray-200 p-6 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+      <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity`}></div>
+      <div className="relative">
+        <div className="text-4xl mb-4">{icon}</div>
+        <p className="text-gray-800 font-medium leading-relaxed">{title}</p>
+      </div>
     </div>
   );
 }
 
+/**
+ * Monitoring feature card.
+ */
+function MonitorCard({ icon, title, color }: { icon: string; title: string; color: string }) {
+  const colors: Record<string, string> = {
+    blue: 'from-blue-500 to-cyan-500',
+    purple: 'from-purple-500 to-pink-500',
+    orange: 'from-orange-500 to-red-500',
+    green: 'from-green-500 to-emerald-500'
+  };
+  
+  return (
+    <div className="rounded-xl bg-gray-800 border border-gray-700 p-6 hover:border-gray-500 transition-all hover:scale-105">
+      <div className="text-4xl mb-3">{icon}</div>
+      <p className="text-gray-300 text-sm font-medium leading-relaxed">{title}</p>
+    </div>
+  );
+}
+
+/**
+ * Report feature card.
+ */
+function ReportCard({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div className="rounded-xl bg-linear-to-br from-gray-800 to-gray-900 border border-gray-700 p-6 text-center hover:border-blue-500 transition-all">
+      <div className="text-3xl mb-2">{icon}</div>
+      <p className="text-gray-300 font-medium">{text}</p>
+    </div>
+  );
+}
 
 /**
  * Step card used in "How It Works" section.
@@ -321,14 +379,11 @@ function PricingCard({
   highlight?: boolean;
 }) {
   const handleUpgrade = () => {
-    // For free plan, go to scan page
     if (title === "Starter" || title === "Business") {
       window.location.href = "/pricing";
     } else if (title === "Agency") {
-      // Coming soon - do nothing or show modal
       return;
     } else {
-      // Free/default - go to scan
       window.location.href = "/scan";
     }
   };
@@ -382,39 +437,3 @@ function PricingCard({
     </div>
   );
 }
-
-
-{/* CTAs */}
-<div className="mt-8 flex flex-wrap gap-4">
-  <Link
-    href="/scan"
-    onClick={() =>
-      trackEvent("cta_click", {
-        page: "home",
-        location: "hero",
-        action: "scan",
-      })
-    }
-  >
-    <PrimaryButton>
-      Scan My Website — Free
-    </PrimaryButton>
-  </Link>
-
-  <Link
-    href="/pricing"
-    onClick={() =>
-      trackEvent("cta_click", {
-        page: "home",
-        location: "hero",
-        action: "pricing",
-      })
-    }
-  >
-    <SecondaryButton>
-      View Pricing
-    </SecondaryButton>
-  </Link>
-</div>
-
-
