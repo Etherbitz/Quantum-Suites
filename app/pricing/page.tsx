@@ -29,28 +29,53 @@ export default async function PricingPage() {
   }
 
   return (
-    <main className="px-6 py-24 bg-neutral-950">
-      <div className="mx-auto max-w-7xl rounded-3xl bg-white p-12 shadow-2xl">
-        {/* Breadcrumbs */}
-        <nav className="mb-6 text-sm text-gray-500">
-          <Link href="/" className="hover:underline">
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-700">Pricing</span>
-        </nav>
+    <main className="min-h-screen bg-linear-to-b from-blue-50 via-indigo-50 to-purple-50">
+      {/* Navigation Bar */}
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <a href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            Quantum Suites AI
+          </a>
+          <div className="flex gap-4">
+            <a href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              Home
+            </a>
+            <a href="/scan" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              Free Scan
+            </a>
+            <a href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+              Sign Up
+            </a>
+          </div>
+        </div>
+      </nav>
 
-        <div className="text-center">
-          <h1 className="text-4xl font-semibold text-gray-900">
-            Pricing
+      {/* Hero Section */}
+      <section className="px-6 py-16 text-center">
+        <div className="mx-auto max-w-4xl">
+          <div className="inline-block mb-4">
+            <div className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+              💰 No Long-Term Contracts
+            </div>
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
+            <span className="bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Simple, Transparent Pricing
+            </span>
           </h1>
-
-          <p className="mt-4 text-gray-600">
-            Simple pricing designed for small businesses. No long-term contracts.
+          
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+            Choose the plan that fits your needs. 
+            <span className="font-semibold text-gray-900"> Cancel anytime, no questions asked.</span>
           </p>
         </div>
+      </section>
 
-        <div className="mt-16 grid gap-10 md:grid-cols-3">
+      {/* Pricing Cards Section */}
+      <section className="px-6 pb-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 md:grid-cols-3">
           {/* Starter */}
           <PricingCard
             title="Starter"
@@ -126,8 +151,86 @@ export default async function PricingPage() {
               </button>
             }
           />
+          </div>
+
+          {/* Trust Badges */}
+          <div className="mt-16 flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">No setup fees</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">Cancel anytime</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">30-day money back</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="px-6 py-16 bg-white">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Frequently Asked Questions
+          </h2>
+          
+          <div className="space-y-6">
+            <FAQItem
+              question="Can I try before I buy?"
+              answer="Yes! Start with our free scan to see your compliance risk score. No credit card required."
+            />
+            <FAQItem
+              question="What payment methods do you accept?"
+              answer="We accept all major credit cards including Visa, Mastercard, American Express, and Discover."
+            />
+            <FAQItem
+              question="Can I change or cancel my plan?"
+              answer="Absolutely. You can upgrade, downgrade, or cancel your plan at any time from your dashboard. No long-term commitments."
+            />
+            <FAQItem
+              question="Do you offer refunds?"
+              answer="Yes, we offer a 30-day money-back guarantee. If you're not satisfied, we'll refund your payment, no questions asked."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-6 py-16 bg-linear-to-r from-blue-600 via-purple-600 to-blue-600">
+        <div className="mx-auto max-w-4xl text-center text-white">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Still Not Sure? Try It Free
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Get your compliance risk score in 60 seconds — no credit card required
+          </p>
+          <a href="/scan" className="inline-block px-8 py-4 bg-white text-blue-600 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+            Start Free Scan
+          </a>
+        </div>
+      </section>
     </main>
+  );
+}
+
+/**
+ * FAQ Item Component
+ */
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div className="bg-linear-to-br from-gray-50 to-blue-50 rounded-xl p-6 border-2 border-blue-100">
+      <h3 className="text-lg font-bold text-gray-900 mb-2">{question}</h3>
+      <p className="text-gray-700 leading-relaxed">{answer}</p>
+    </div>
   );
 }
