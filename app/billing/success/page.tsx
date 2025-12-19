@@ -17,11 +17,10 @@ export default async function BillingSuccessPage() {
   if (userId) {
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { name: true, plan: true },
+      select: { plan: true },
     });
 
     if (user) {
-      userName = user.name || "there";
       userPlan = user.plan;
     }
   }
@@ -65,7 +64,7 @@ export default async function BillingSuccessPage() {
           <div className="bg-white rounded-2xl shadow-xl border-2 border-green-200 p-8 mb-8">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                   <span className="text-green-600 font-bold">1</span>
                 </div>
                 <div className="text-left">
@@ -75,7 +74,7 @@ export default async function BillingSuccessPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div className="text-left">
@@ -85,7 +84,7 @@ export default async function BillingSuccessPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-purple-600 font-bold">3</span>
                 </div>
                 <div className="text-left">
