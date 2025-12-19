@@ -107,7 +107,7 @@ function ProblemSection() {
           </div>
         </div>
 
-        <p className="mt-6 text-xl text-gray-700 font-medium">
+        <p className="mt-8 text-2xl md:text-3xl text-gray-900 font-bold">
           And most owners don't know it until it becomes a problem.
         </p>
 
@@ -129,7 +129,7 @@ function ProblemSection() {
           />
         </div>
 
-        <p className="mt-12 text-lg text-gray-700 font-medium">
+        <p className="mt-12 text-xl md:text-2xl text-gray-900 font-bold">
           You shouldn't need to become a legal or technical expert to protect your business.
         </p>
       </div>
@@ -180,12 +180,12 @@ function HowItWorksSection() {
  */
 function MonitoringSection() {
   return (
-    <section className="bg-linear-to-b from-gray-900 to-black px-6 py-20">
+    <section className="bg-linear-to-b from-blue-900 via-indigo-900 to-purple-900 px-6 py-20">
       <div className="mx-auto max-w-6xl">
         <h2 className="text-4xl font-bold text-center text-white mb-4">
           What We Monitor
         </h2>
-        <p className="text-center text-gray-400 text-lg mb-12">Comprehensive protection across all compliance areas</p>
+        <p className="text-center text-blue-200 text-lg mb-12">Comprehensive protection across all compliance areas</p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <MonitorCard 
@@ -305,7 +305,7 @@ function RiskCard({ icon, title, gradient }: { icon: string; title: string; grad
   return (
     <div className="group relative rounded-2xl bg-white border-2 border-gray-200 p-6 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
       <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity`}></div>
-      <div className="relative">
+      <div className="relative text-center">
         <div className="text-4xl mb-4">{icon}</div>
         <p className="text-gray-800 font-medium leading-relaxed">{title}</p>
       </div>
@@ -325,7 +325,7 @@ function MonitorCard({ icon, title, color }: { icon: string; title: string; colo
   };
   
   return (
-    <div className="rounded-xl bg-gray-800 border border-gray-700 p-6 hover:border-gray-500 transition-all hover:scale-105">
+    <div className="rounded-xl bg-gray-800 border border-gray-700 p-6 hover:border-gray-500 transition-all hover:scale-105 text-center">
       <div className="text-4xl mb-3">{icon}</div>
       <p className="text-gray-300 text-sm font-medium leading-relaxed">{title}</p>
     </div>
