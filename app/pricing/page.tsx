@@ -51,21 +51,21 @@ export default async function PricingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="px-6 py-16 text-center">
+      <section className="px-6 py-8 text-center">
         <div className="mx-auto max-w-4xl">
-          <div className="inline-block mb-4">
+          <div className="inline-block mb-3">
             <div className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
               💰 No Long-Term Contracts
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
             <span className="bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
               Simple, Transparent Pricing
             </span>
           </h1>
           
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
             Choose the plan that fits your needs. 
             <span className="font-semibold text-gray-900"> Cancel anytime, no questions asked.</span>
           </p>
@@ -73,7 +73,7 @@ export default async function PricingPage() {
       </section>
 
       {/* Pricing Cards Section */}
-      <section className="px-6 pb-16">
+      <section className="px-6 pb-12">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-3">
           {/* Starter */}
