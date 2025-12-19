@@ -286,9 +286,11 @@ function FinalCTASection() {
       </p>
 
       <div className="mt-8">
-        <PrimaryButton inverted>
-          Scan My Website — Free
-        </PrimaryButton>
+        <Link href="/scan">
+          <PrimaryButton inverted>
+            Scan My Website — Free
+          </PrimaryButton>
+        </Link>
       </div>
     </section>
   );
