@@ -6,9 +6,13 @@ import { PLANS } from "@/lib/plans";
 export function UpgradeButton({
   plan,
   label,
+  highlight = false,
+  fullWidth = false,
 }: {
   plan: "starter" | "business";
   label: string;
+  highlight?: boolean;
+  fullWidth?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -50,14 +54,19 @@ export function UpgradeButton({
     }
   }
 
+  const baseClasses = fullWidth 
+    ? "w-full px-6 py-4 rounded-xl font-bold text-lg transition-all"
+    : "w-full rounded-lg px-6 py-3 font-medium transition";
+
+  const colorClasses = highlight
+    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+    : "bg-gray-900 text-white hover:bg-gray-800";
+
   return (
     <button
       onClick={upgrade}
       disabled={loading}
-      className="w-full rounded-lg bg-blue-600 px-6 py-3 text-white font-medium
-                 hover:bg-blue-700 active:scale-[0.98]
-                 disabled:opacity-50 disabled:cursor-not-allowed
-                 transition"
+      className={`${baseClasses} ${colorClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? "Loading..." : label}
     </button>
