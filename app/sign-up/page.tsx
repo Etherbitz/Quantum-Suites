@@ -26,12 +26,17 @@ export default function SignUpPage() {
                 "bg-neutral-900 border border-neutral-800 text-white",
               footerActionText: "text-neutral-400",
               footerActionLink: "text-white hover:underline",
+              socialButtonsBlockButton:
+                "bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800 transition",
+              socialButtonsBlockButtonText: "text-white font-medium",
+              dividerLine: "bg-neutral-800",
+              dividerText: "text-neutral-500",
             },
           }}
           routing="path"
           path="/sign-up"
           signInUrl="/sign-in"
-          afterSignUpUrl="/dashboard"
+          afterSignUpUrl="/sign-up/complete"
         />
       </div>
     </main>
