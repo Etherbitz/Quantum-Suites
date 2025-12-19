@@ -7,6 +7,8 @@ export const PLANS = {
     changeAlerts: false,
     auditTrail: false,
     suggestions: false,
+    price: 0,
+    stripePriceId: null,
   },
 
   starter: {
@@ -17,6 +19,8 @@ export const PLANS = {
     changeAlerts: false,
     auditTrail: false,
     suggestions: false,
+    price: 29,
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER,
   },
 
   business: {
@@ -27,6 +31,8 @@ export const PLANS = {
     changeAlerts: true,
     auditTrail: true,
     suggestions: true,
+    price: 79,
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS,
   },
 
   agency: {
@@ -39,6 +45,8 @@ export const PLANS = {
     suggestions: true,
     whiteLabel: true,
     centralDashboard: true,
+    price: null, // Coming soon
+    stripePriceId: null,
   },
 } as const;
 

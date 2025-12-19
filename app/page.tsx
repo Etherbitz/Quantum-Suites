@@ -323,6 +323,19 @@ function PricingCard({
   features: string[];
   highlight?: boolean;
 }) {
+  const handleUpgrade = () => {
+    // For free plan, go to scan page
+    if (title === "Starter" || title === "Business") {
+      window.location.href = "/pricing";
+    } else if (title === "Agency") {
+      // Coming soon - do nothing or show modal
+      return;
+    } else {
+      // Free/default - go to scan
+      window.location.href = "/scan";
+    }
+  };
+
   return (
     <div
       className={`rounded-2xl border p-8 ${
@@ -340,9 +353,13 @@ function PricingCard({
       </ul>
 
       <div className="mt-8">
-        <PrimaryButton fullWidth>
-          Start Free Scan
-        </PrimaryButton>
+        <button
+          onClick={handleUpgrade}
+          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={title === "Agency"}
+        >
+          {title === "Agency" ? "Coming Soon" : "Start Free Scan"}
+        </button>
       </div>
     </div>
   );
