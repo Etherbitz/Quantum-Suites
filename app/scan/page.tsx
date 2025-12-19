@@ -25,37 +25,51 @@ export default function ScanPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 via-indigo-50 to-purple-50">
-      {/* Hero Section */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-block mb-6">
-            <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
-              ⚡ Free Compliance Check
-            </div>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            <span className="bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
-              Scan Your Website
-            </span>
-          </h1>
-          
-          <p className="mt-6 text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
-            Get instant insights into your website's compliance risks. 
-            <span className="font-semibold text-gray-900"> Takes less than 60 seconds.</span>
-          </p>
-
-          {/* Usage Meter */}
-          <div className="mt-8 max-w-xl mx-auto">
-            <UsageMeter />
+      {/* Navigation Bar */}
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <a href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            Quantum Suites AI
+          </a>
+          <div className="flex gap-4">
+            <a href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              Home
+            </a>
+            <a href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+              Sign Up
+            </a>
           </div>
         </div>
-      </section>
+      </nav>
 
-      {/* Scan Form Section */}
-      <section className="px-6 pb-16">
-        <div className="mx-auto max-w-2xl">
-          <div className="bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8 md:p-12">
+      {/* Compact Hero + Form Section */}
+      <section className="px-6 py-12">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center mb-8">
+            <div className="inline-block mb-4">
+              <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                ⚡ Free Compliance Check
+              </div>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              <span className="bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+                Scan Your Website
+              </span>
+            </h1>
+            
+            <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+              Get your compliance risk score in seconds — 100% free, no credit card required
+            </p>
+          </div>
+
+          {/* Usage Meter */}
+          <div className="mb-8">
+            <UsageMeter />
+          </div>
+
+          {/* Scan Form */}
+          <div className="bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8 md:p-10">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="url" className="block text-sm font-semibold text-gray-700 mb-3">
@@ -98,36 +112,54 @@ export default function ScanPage() {
               </button>
 
               <p className="text-center text-sm text-gray-500">
-                No credit card required • Results in seconds • 100% free
+                Takes less than 60 seconds • No signup required
               </p>
             </form>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* What You Get Section */}
       <section className="px-6 py-16 bg-white">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
             What You'll Get From Your Free Scan
           </h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            Instantly see your compliance risk score. Upgrade for detailed analysis and action plans.
+          </p>
           
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon="📊"
-              title="Compliance Score"
+              title="Compliance Risk Score"
+              badge="FREE"
               description="Get a clear risk rating: Low, Medium, or High based on industry standards"
+              isFree={true}
             />
             <FeatureCard
               icon="🔍"
               title="Detailed Analysis"
+              badge="PAID"
               description="See exactly what issues were found and why they matter for your business"
+              isFree={false}
             />
             <FeatureCard
               icon="📋"
-              title="Action Plan"
-              description="Receive prioritized recommendations to improve your compliance"
+              title="Priority Action Plan"
+              badge="PAID"
+              description="Receive step-by-step recommendations to fix compliance issues"
+              isFree={false}
             />
+          </div>
+
+          <div className="mt-12 text-center">
+            <a href="/pricing" className="inline-flex items-center gap-2 px-8 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+              <span>Unlock Full Reports</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
           </div>
         </div>
       </section>
@@ -138,12 +170,32 @@ export default function ScanPage() {
 /**
  * Feature card component
  */
-function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
+function FeatureCard({ icon, title, badge, description, isFree }: { icon: string; title: string; badge: string; description: string; isFree: boolean }) {
   return (
-    <div className="text-center p-6 rounded-2xl bg-linear-to-br from-gray-50 to-blue-50 border-2 border-blue-100 hover:border-blue-300 transition-all hover:shadow-lg">
+    <div className={`relative text-center p-6 rounded-2xl border-2 transition-all hover:shadow-lg ${
+      isFree 
+        ? 'bg-linear-to-br from-green-50 to-blue-50 border-green-200 hover:border-green-400' 
+        : 'bg-linear-to-br from-gray-50 to-purple-50 border-purple-200 hover:border-purple-400'
+    }`}>
+      <div className="absolute -top-3 right-4">
+        <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+          isFree 
+            ? 'bg-green-500 text-white' 
+            : 'bg-purple-500 text-white'
+        }`}>
+          {badge}
+        </span>
+      </div>
       <div className="text-5xl mb-4">{icon}</div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-600 leading-relaxed">{description}</p>
+      {!isFree && (
+        <div className="mt-4">
+          <a href="/pricing" className="text-purple-600 font-semibold text-sm hover:text-purple-700">
+            View Plans →
+          </a>
+        </div>
+      )}
     </div>
   );
 }
