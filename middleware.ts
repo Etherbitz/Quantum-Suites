@@ -1,10 +1,14 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { authMiddleware } from "@clerk/nextjs";
 
-export default clerkMiddleware();
+export default authMiddleware({
+  publicRoutes: [
+    "/",
+    "/sign-in",
+    "/sign-up",
+    "/api/webhook/clerk",
+  ],
+});
 
 export const config = {
-  matcher: [
-    // Run middleware on all routes except static assets
-    "/((?!_next|.*\\..*).*)",
-  ],
+  matcher: ["/((?!_next|favicon.ico).*)"],
 };
