@@ -2,25 +2,82 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 import { UsageMeter } from "@/components/UsageMeter";
+import { useScanJobPolling } from "@/components/useScanJobPolling";
 
 export default function ScanPage() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [scanJobId, setScanJobId] = useState<string | null>(null);
+
+  const {
+    status: jobStatus,
+    loading: polling,
+    reset: resetPolling,
+  } = useScanJobPolling({
+    scanJobId,
+    onCompleted: (scanId) => router.push(`/scan/results?scanId=${scanId}`),
+    onFailed: (message) => setError(message),
+  });
+
+  const isBusy = loading || polling || Boolean(scanJobId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    resetPolling();
+    setScanJobId(null);
     setLoading(true);
 
-    const res = await fetch("/api/scan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
-    });
+    try {
+      const res = await fetch("/api/scan/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
 
-    const { scanId } = await res.json();
-    router.push(`/scan/results?scanId=${scanId}`);
+      let payload: any = null;
+      try {
+        payload = await res.json();
+      } catch (err) {
+        payload = null;
+      }
+
+      if (res.ok && payload?.scanJobId) {
+        setScanJobId(payload.scanJobId);
+        return;
+      }
+
+      if (res.status === 401) {
+        const fallback = await fetch("/api/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!fallback.ok) {
+          throw new Error("Scan failed. Please try again.");
+        }
+
+        const { scanId } = await fallback.json();
+        router.push(`/scan/results?scanId=${scanId}`);
+        return;
+      }
+
+      const message = payload?.error || "Unable to start scan. Please try again.";
+      setError(message);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to start scan. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,16 +85,16 @@ export default function ScanPage() {
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          <Link href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             Quantum Suites AI
-          </a>
+          </Link>
           <div className="flex gap-4">
-            <a href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+            <Link href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
               Home
-            </a>
-            <a href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+            </Link>
+            <Link href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
               Sign Up
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -95,21 +152,41 @@ export default function ScanPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isBusy}
                 className="w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-600 py-4 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {loading ? (
+                {isBusy ? (
                   <span className="flex items-center justify-center gap-3">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Analyzing Your Website…
+                    {scanJobId
+                      ? jobStatus === "running"
+                        ? "Scanning your site…"
+                        : jobStatus === "queued"
+                          ? "Queued…"
+                          : jobStatus === "completed"
+                            ? "Redirecting to results…"
+                            : "Checking status…"
+                      : "Starting your scan…"}
                   </span>
                 ) : (
                   "🚀 Start Free Scan"
                 )}
               </button>
+
+              {scanJobId && (
+                <p className="text-center text-sm text-blue-700">
+                  Status: {jobStatus === "queued" ? "Queued (polling every 2s)…" : jobStatus === "running" ? "Scanning in progress…" : jobStatus === "failed" ? "Failed — please retry." : jobStatus}
+                </p>
+              )}
+
+              {error && (
+                <p className="text-center text-sm text-red-600">
+                  {error}
+                </p>
+              )}
 
               <p className="text-center text-sm text-gray-500">
                 Takes less than 60 seconds • No signup required
@@ -123,7 +200,7 @@ export default function ScanPage() {
       <section className="px-6 py-16 bg-white">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
-            What You'll Get From Your Free Scan
+            What You&apos;ll Get From Your Free Scan
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
             Instantly see your compliance risk score. Upgrade for detailed analysis and action plans.
@@ -154,12 +231,12 @@ export default function ScanPage() {
           </div>
 
           <div className="mt-12 text-center">
-            <a href="/pricing" className="inline-flex items-center gap-2 px-8 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+            <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
               <span>Unlock Full Reports</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -191,9 +268,9 @@ function FeatureCard({ icon, title, badge, description, isFree }: { icon: string
       <p className="text-gray-600 leading-relaxed">{description}</p>
       {!isFree && (
         <div className="mt-4">
-          <a href="/pricing" className="text-purple-600 font-semibold text-sm hover:text-purple-700">
+          <Link href="/pricing" className="text-purple-600 font-semibold text-sm hover:text-purple-700">
             View Plans →
-          </a>
+          </Link>
         </div>
       )}
     </div>

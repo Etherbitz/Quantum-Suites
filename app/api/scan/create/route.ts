@@ -4,6 +4,8 @@ import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { PLANS } from "@/lib/plans";
 import { canScanNow } from "@/lib/planGuards";
 import { NextResponse } from "next/server";
+import { runScanJob } from "@/lib/scanner/runScanJob";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -14,6 +16,7 @@ export async function POST(req: Request) {
       { error: "UNAUTHENTICATED" },
       { status: 401 }
     );
+
   }
 
   const user = await getOrCreateUser(
@@ -23,32 +26,44 @@ export async function POST(req: Request) {
 
   const plan = PLANS[user.plan as keyof typeof PLANS];
 
+  const { url } = await req.json();
+
   // -----------------------------
-  // ENFORCE WEBSITE LIMIT
+  // WEBSITE LIMIT
   // -----------------------------
   if (user.websitesUsed >= plan.websites) {
     return NextResponse.json(
-      {
-        error: "WEBSITE_LIMIT_REACHED",
-        plan: user.plan,
-        websites: plan.websites,
-      },
+      { error: "WEBSITE_LIMIT_REACHED" },
       { status: 403 }
     );
   }
 
-  const body = await req.json();
-  const { url } = body;
+  // -----------------------------
+  // FIND OR CREATE WEBSITE
+  // -----------------------------
+  const website = await prisma.website.upsert({
+    where: {
+      userId_url: {
+        userId: user.id,
+        url,
+      },
+    },
+    update: {},
+    create: {
+      userId: user.id,
+      url,
+    },
+  });
 
   // -----------------------------
-  // CHECK SCAN FREQUENCY
+  // SCAN FREQUENCY CHECK
   // -----------------------------
-  const lastScan = await prisma.scan.findFirst({
-    where: { userId: user.id, url },
+  const lastJob = await prisma.scanJob.findFirst({
+    where: { websiteId: website.id },
     orderBy: { createdAt: "desc" },
   });
 
-  if (!canScanNow(user.plan as keyof typeof PLANS, lastScan?.createdAt || null)) {
+  if (!canScanNow(user.plan as keyof typeof PLANS, lastJob?.createdAt || null)) {
     return NextResponse.json(
       { error: "SCAN_FREQUENCY_LIMIT" },
       { status: 429 }
@@ -56,28 +71,22 @@ export async function POST(req: Request) {
   }
 
   // -----------------------------
-  // ENFORCE WEBSITE LIMIT
+  // CREATE SCAN JOB
   // -----------------------------
-  const scan = await prisma.scan.create({
+  const scanJob = await prisma.scanJob.create({
     data: {
-      url,
-      userId: user.id,
-      score: 0,
-      riskLevel: "pending",
-      summaryIssues: [],
-      allIssues: {},
+      websiteId: website.id,
+      type: "manual",
+      status: "queued",
     },
   });
 
   // -----------------------------
-  // INCREMENT USAGE
+  // START SCAN IMMEDIATELY (fire-and-forget)
   // -----------------------------
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      websitesUsed: { increment: 1 },
-    },
-  });
+  runScanJob(scanJob.id);
 
-  return NextResponse.json({ scanId: scan.id });
+  return NextResponse.json({
+    scanJobId: scanJob.id,
+  });
 }
