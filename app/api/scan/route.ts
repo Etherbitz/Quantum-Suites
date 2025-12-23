@@ -74,9 +74,40 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    // For anonymous scans we still need a Website record so the
+    // scan job has a URL to operate on. We attach them to a
+    // shared "public" user.
+
+    const ANON_CLERK_ID = "public-anonymous";
+
+    const anonUser = await prisma.user.upsert({
+      where: { clerkId: ANON_CLERK_ID },
+      update: {},
+      create: {
+        clerkId: ANON_CLERK_ID,
+        email: "anonymous@quantumsuites-ai.com",
+        plan: "free",
+      },
+    });
+
+    const website = await prisma.website.upsert({
+      where: {
+        userId_url: {
+          userId: anonUser.id,
+          url: normalizedUrl,
+        },
+      },
+      update: {},
+      create: {
+        userId: anonUser.id,
+        url: normalizedUrl,
+      },
+    });
 
     const job = await prisma.scanJob.create({
       data: {
+        userId: anonUser.id,
+        websiteId: website.id,
         type: "anonymous",
         status: "QUEUED",
       },
