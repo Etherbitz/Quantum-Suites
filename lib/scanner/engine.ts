@@ -9,6 +9,17 @@ import { AccessibilityScanner } from "@/lib/scanner/accessibility";
 import { ComplianceScanner } from "@/lib/scanner/compliance";
 import type { ScanIssue, ScanResult } from "@/lib/scanner/types";
 
+// Scoring configuration
+const MAX_SCORE = 100;
+const PENALTY_PER_CRITICAL = 12;
+const PENALTY_PER_WARNING = 4;
+const PENALTY_PER_INFO = 1;
+
+// Caps prevent a single category from driving the score to zero
+const MAX_CRITICAL_COUNT = 5; // beyond this, additional criticals don't reduce score further
+const MAX_WARNING_COUNT = 10;
+const MAX_INFO_COUNT = 25;
+
 export class ScanEngine {
   private analyzer = new WebsiteAnalyzer();
   private accessibility = new AccessibilityScanner();
@@ -55,9 +66,16 @@ export class ScanEngine {
   }
 
   private computeScore(summary: { critical: number; warning: number; info: number }): number {
+    const criticalCount = Math.min(summary.critical, MAX_CRITICAL_COUNT);
+    const warningCount = Math.min(summary.warning, MAX_WARNING_COUNT);
+    const infoCount = Math.min(summary.info, MAX_INFO_COUNT);
+
     const penalties =
-      summary.critical * 20 + summary.warning * 10 + summary.info * 2;
-    return Math.max(0, 100 - penalties);
+      criticalCount * PENALTY_PER_CRITICAL +
+      warningCount * PENALTY_PER_WARNING +
+      infoCount * PENALTY_PER_INFO;
+
+    return Math.max(0, MAX_SCORE - penalties);
   }
 
   private computeRiskLevel(score: number, critical: number):

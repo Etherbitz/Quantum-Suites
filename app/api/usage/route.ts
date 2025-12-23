@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { PLANS, type Plan } from "@/lib/plans";
+import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 /**
@@ -35,21 +35,30 @@ export async function GET() {
       clerkUser.emailAddresses[0].emailAddress
     );
 
-    const plan = (user.plan in PLANS
-  ? user.plan
-  : "free") as Plan;
+    const rawPlan = typeof user.plan === "string" ? user.plan.toLowerCase() : "free";
+    const plan: Plan =
+      rawPlan === "starter" ||
+      rawPlan === "business" ||
+      rawPlan === "agency"
+        ? (rawPlan as Plan)
+        : "free";
 
     const limits = PLANS[plan];
 
-    const websitesUsed = user.websitesUsed;
+    const websitesUsed = await prisma.website.count({
+      where: { userId: user.id },
+    });
 
     return NextResponse.json({
       authenticated: true,
       plan: user.plan,
       websitesUsed,
-      websitesLimit: limits.websites,
+      // JSON does not support Infinity; encode unlimited as -1
+      websitesLimit:
+        limits.websites === Infinity ? -1 : limits.websites,
     });
   } catch (error) {
+    console.error("usage route error", error);
     return NextResponse.json(
       { authenticated: false },
       { status: 200 }

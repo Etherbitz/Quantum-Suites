@@ -1,126 +1,404 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { getOrCreateUser } from "@/lib/getOrCreateUser";
-import { hasFeature } from "@/lib/featureAccess";
-import type { Plan } from "@/lib/plans";
-import { prisma } from "@/lib/db";
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { ComplianceScoreCard } from "@/components/dashboard/ComplianceScoreCard";
-import { ScanHistory } from "@/components/dashboard/ScanHistory";
-import { IssuesList } from "@/components/dashboard/IssuesList";
 import Link from "next/link";
+import { prisma } from "@/lib/db";
+import { ComplianceScore } from "@/components/dashboard/ComplianceScore";
+import ScanHistory from "@/components/dashboard/ScanHistory";
+import { MetricCard, NextActionsStepper } from "@/components/dashboard";
+import { ComplianceTrendChart } from "@/components/dashboard";
+import { WebsitesList } from "@/components/dashboard/WebsitesList";
+import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
+import { UpgradeCTA } from "@/components/common/UpgradeCTA";
+import {
+  calculateComplianceScore,
+  getComplianceTrend,
+} from "@/lib/compliance";
+import { evaluateComplianceDropAlert } from "@/lib/alerts/complianceAlerts";
+import { PLAN_ALERT_CONFIG } from "@/lib/alerts/planAlertConfig";
+import { PLANS, type Plan } from "@/lib/plans";
+import { hasFeature } from "@/lib/featureAccess";
+import { getOrCreateUser } from "@/lib/getOrCreateUser";
 
-/**
- * Dashboard overview page.
- */
 export default async function DashboardPage() {
   const { userId } = await auth();
+  if (!userId) return null;
+
   const clerkUser = await currentUser();
+  const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+  if (!email) return null;
 
-  let user = null;
-  let scans: any[] = [];
-  let latestScan: any = null;
+  // Ensure we have a local user record tied to this Clerk user
+  const user = await getOrCreateUser(userId, email);
 
-  if (userId && clerkUser?.emailAddresses?.[0]?.emailAddress) {
-    user = await getOrCreateUser(
-      userId,
-      clerkUser.emailAddresses[0].emailAddress
+  const rawPlan = (user.plan ?? "free").toLowerCase();
+  const plan = (rawPlan in PLANS ? rawPlan : "free") as Plan;
+  const planConfig = PLAN_ALERT_CONFIG[plan];
+
+  // Fetch recent scans + websites
+  const [scans, websites] = await Promise.all([
+    prisma.scanJob.findMany({
+      where: { userId: user.id },
+      include: { website: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.website.findMany({
+      where: { userId: user.id },
+      select: { id: true, url: true, nextScanAt: true },
+    }),
+  ]);
+
+  const currentPeriod = scans.slice(0, 10);
+  const previousPeriod = scans.slice(10, 20);
+
+  const currentScore = calculateComplianceScore(currentPeriod);
+  const previousScore = calculateComplianceScore(previousPeriod);
+
+  const trend = getComplianceTrend(currentScore, previousScore);
+
+  const totalScans = scans.length;
+  const highRiskCount = scans.filter((s) => (s.score ?? 0) < 60).length;
+  const websitesLimit = PLANS[plan].websites;
+
+  // Map website -> latest scan status for monitoring overview
+  const websiteStatus = new Map<
+    string,
+    { lastScanAt: Date; lastScore: number | null }
+  >();
+
+  for (const scan of scans) {
+    // First scan we encounter is the most recent due to ordering
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const websiteId = (scan as any).websiteId as string | null | undefined;
+    if (!websiteId || websiteStatus.has(websiteId)) continue;
+    websiteStatus.set(websiteId, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      lastScanAt: (scan as any).createdAt as Date,
+      lastScore: scan.score ?? null,
+    });
+  }
+
+  // Determine if alerts are allowed by plan + scan type
+  const latestScan = currentPeriod[0];
+  const isScheduledScan = latestScan?.type === "scheduled";
+  const isRealtimeScan =
+    latestScan?.type === "full" || latestScan?.type === "quick";
+
+  const alertsAllowed =
+    planConfig.enabled &&
+    (planConfig.mode === "realtime" ||
+      (planConfig.mode === "scheduled_only" && isScheduledScan));
+
+  // Resolve threshold (user override > plan default)
+  const effectiveThreshold =
+    user?.alertDropThreshold ?? planConfig.dropThreshold;
+
+  if (alertsAllowed) {
+    const alert = evaluateComplianceDropAlert(
+      currentScore,
+      previousScore,
+      effectiveThreshold
     );
 
-    // Fetch user's scans
-    scans = await prisma.scan.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    });
+    if (alert) {
+      const cooldownStart = new Date();
+      cooldownStart.setHours(
+        cooldownStart.getHours() - planConfig.cooldownHours
+      );
 
-    latestScan = scans[0] || null;
+      const existingAlert =
+        await prisma.complianceAlert.findFirst({
+          where: {
+            userId: user.id,
+            createdAt: { gte: cooldownStart },
+            delta: { lt: 0 },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+
+      if (!existingAlert) {
+        await prisma.complianceAlert.create({
+          data: {
+            userId: user.id,
+            previousScore: alert.previousScore,
+            currentScore: alert.currentScore,
+            delta: alert.delta,
+            severity: alert.severity,
+          },
+        });
+      }
+    }
   }
 
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  };
+  const latestSummary = latestScan?.summary as
+    | { mode?: string; riskLevel?: string; topIssues?: string[]; reason?: string }
+    | undefined
+    | null;
 
-  // Parse issues from latest scan
-  let issues: any[] = [];
-  if (latestScan && latestScan.summaryIssues && Array.isArray(latestScan.summaryIssues)) {
-    issues = latestScan.summaryIssues.map((msg: string, idx: number) => ({
-      severity: idx < 2 ? "critical" : idx < 5 ? "warning" : "info",
-      message: msg,
-      category: "Accessibility",
-    }));
-  }
+  const topIssues = Array.isArray(latestSummary?.topIssues)
+    ? latestSummary?.topIssues.slice(0, 3)
+    : [];
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold text-gray-900">
-          Dashboard
-        </h1>
-        <Link
-          href="/scan"
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-        >
-          New Scan
-        </Link>
+    <div className="space-y-6">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <div>
+          <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
+            Overview
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold text-neutral-50">
+            Compliance dashboard
+          </h1>
+          <p className="mt-1 text-xs text-neutral-500">
+            Your latest scans, overall score, and any recent risk changes.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-400">
+          <span className="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-medium text-neutral-200">
+            Plan: {plan}
+          </span>
+          <span className="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1">
+            Alerts: {alertsAllowed ? "enabled" : "off for this scan"}
+          </span>
+        </div>
       </div>
 
-      <section className="mt-6 grid gap-6 md:grid-cols-4">
-        <MetricCard label="Websites" value={user?.websitesUsed.toString() || "0"} />
-        <MetricCard
-          label="Risk Level"
-          value={latestScan?.riskLevel || "Unknown"}
-          accent={latestScan?.riskLevel === "low" ? "green" : latestScan?.riskLevel === "medium" ? "amber" : "red"}
-        />
-        <MetricCard label="Issues" value={issues.length.toString()} />
-        <MetricCard
-          label="Last Scan"
-          value={latestScan ? formatTimeAgo(new Date(latestScan.createdAt)) : "Never"}
-        />
-      </section>
-
-      {latestScan ? (
-        <>
-          <section className="mt-10 grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-1">
-              <ComplianceScoreCard score={latestScan.score} riskLevel={latestScan.riskLevel} />
+      {plan === "agency" && (
+        <section className="rounded-2xl border border-emerald-700/40 bg-linear-to-br from-emerald-900/60 via-emerald-950 to-black p-4 md:p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/80">
+                Agency highlight
+              </p>
+              <h2 className="text-lg font-semibold text-emerald-50">
+                AI Compliance Assistant for your client sites
+              </h2>
+              <p className="max-w-xl text-[11px] text-emerald-100/80">
+                Turn raw scan findings into clear, developer-ready tasks. The assistant reads your latest
+                results and suggests the exact fixes to ship next.
+              </p>
             </div>
 
-            <div className="lg:col-span-2">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Detected Issues</h2>
-              <IssuesList issues={issues} />
+            <div className="flex flex-col items-stretch gap-2 text-[11px] md:items-end">
+              <Link
+                href={
+                  latestScan?.id
+                    ? `/scan/results?scanId=${latestScan.id}#ai-assistant`
+                    : "/scan"
+                }
+                className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm shadow-emerald-500/40 transition hover:bg-emerald-400"
+              >
+                {latestScan ? "Open AI assistant on latest scan" : "Run a scan to use AI"}
+              </Link>
+              <p className="text-[10px] text-emerald-200/80">
+                Included on Agency — unlimited client websites.
+              </p>
             </div>
-          </section>
-
-          <section className="mt-10">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Scan History</h2>
-            <ScanHistory scans={scans} />
-          </section>
-        </>
-      ) : (
-        <section className="mt-10">
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-12 text-center">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome to Quantum Suites!
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Start by scanning your website to see your compliance score and identify potential issues.
-            </p>
-            <Link
-              href="/scan"
-              className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-            >
-              Scan Your Website
-            </Link>
           </div>
         </section>
       )}
-    </>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <MetricCard
+          label="Total scans"
+          value={totalScans.toString()}
+        />
+        <MetricCard
+          label="Portfolio score (all sites)"
+          value={Number.isFinite(currentScore) ? `${currentScore}/100` : "—"}
+          accent="amber"
+        />
+        <MetricCard
+          label="High-risk scans"
+          value={highRiskCount.toString()}
+          accent={highRiskCount > 0 ? "danger" : "default"}
+        />
+      </div>
+
+      {plan === "free" && (
+        <p className="text-[11px] text-neutral-500">
+          Upgrade to <span className="font-semibold text-neutral-200">Business</span> to monitor up to {PLANS.business.websites} sites continuously, receive change alerts, and unlock detailed reports.
+        </p>
+      )}
+
+      {plan === "starter" && (
+        <p className="text-[11px] text-neutral-500">
+          On Starter you get weekly scans for one site. Move to <span className="font-semibold text-neutral-200">Business</span> for continuous monitoring, alerts, and AI-powered suggestions.
+        </p>
+      )}
+
+      {plan === "business" && (
+        <p className="text-[11px] text-neutral-500">
+          Youre on <span className="font-semibold text-neutral-200">Business</span>. Add more key sites and keep an eye on drops in your Compliance Trend chart below.
+        </p>
+      )}
+
+      {plan === "agency" && (
+        <p className="text-[11px] text-neutral-500">
+          Agency accounts can onboard unlimited client sites and centralize monitoring. Use this dashboard as your shared compliance cockpit.
+        </p>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+        <div className="space-y-4">
+          <ComplianceScore
+            score={currentScore}
+            trend={trend}
+          />
+
+          <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-neutral-50">
+                Next recommended actions
+              </h2>
+              <p className="text-[11px] text-neutral-500">
+                Prioritized from your most recent scan
+              </p>
+            </div>
+
+            {totalScans === 0 && (
+              <p className="text-[11px] text-neutral-500">
+                Run your first scan to see exactly where to start hardening
+                your compliance posture.
+              </p>
+            )}
+
+            {totalScans > 0 && topIssues.length === 0 && (
+              <p className="text-[11px] text-neutral-500">
+                No specific issues surfaced in your latest summary. Keep
+                monitoring this score and schedule regular scans to catch
+                regressions before they become incidents.
+              </p>
+            )}
+
+            {topIssues.length > 0 && (
+              plan === "business" || plan === "agency" ? (
+                <NextActionsStepper
+                  issues={topIssues}
+                  plan={plan}
+                />
+              ) : (
+                <p className="mt-2 text-[11px] text-amber-400">
+                  Upgrade to Business or Agency to get guided, step-by-step
+                  recommendations that walk you through fixing these issues.
+                </p>
+              )
+            )}
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-neutral-50">
+                Recent scans
+              </h2>
+              <p className="text-[11px] text-neutral-500">
+                Showing your last {currentPeriod.length || 0} scans
+              </p>
+            </div>
+            <ScanHistory scans={currentPeriod} />
+          </section>
+        </div>
+
+        <aside className="space-y-4">
+          <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
+            <h2 className="text-sm font-semibold text-neutral-50">
+              Your plan
+            </h2>
+            <p className="mt-1 text-[11px] text-neutral-500">
+              {plan === "free"
+                ? "Free — manual scans for one website."
+                : plan === "starter"
+                ? "Starter — weekly monitoring for a single site."
+                : plan === "business"
+                ? "Business — continuous monitoring, alerts, and reports."
+                : "Agency — multi-site, white-label ready."}
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-neutral-300">
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  Websites
+                </p>
+                <p className="mt-1 text-sm font-semibold text-neutral-50">
+                  {websites.length}
+                  {websitesLimit === Infinity ? " / ∞" : ` / ${websitesLimit}`}
+                </p>
+              </div>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  Alerts
+                </p>
+                <p className="mt-1 text-sm font-semibold text-neutral-50">
+                  {alertsAllowed ? "Enabled" : "Not active"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  Detailed reports
+                </p>
+                <p className="mt-1 text-sm font-semibold text-neutral-50">
+                  {hasFeature(plan, "detailedReports") ? "Included" : "Locked"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  AI suggestions
+                </p>
+                <p className="mt-1 text-sm font-semibold text-neutral-50">
+                  {hasFeature(plan, "suggestions") ? "Included" : "Locked"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  AI assistant
+                </p>
+                <p className="mt-1 text-sm font-semibold text-neutral-50">
+                  {hasFeature(plan, "aiAssistant") ? "Included" : "Locked"}
+                </p>
+              </div>
+            </div>
+
+            {plan !== "business" && plan !== "agency" && (
+              <div className="mt-3 text-[11px] text-neutral-400">
+                <UpgradeCTA reason="Unlock continuous monitoring, alerts, and detailed reports on Business." />
+              </div>
+            )}
+          </section>
+
+          {websites.length > 0 && (
+            <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
+              <h2 className="text-sm font-semibold text-neutral-50">
+                Websites
+              </h2>
+              <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1 text-xs">
+                <WebsitesList
+                  variant="dark"
+                  websites={websites.map((site) => {
+                    const status = websiteStatus.get(site.id);
+                    return {
+                      id: site.id,
+                      url: site.url,
+                      nextScanAt: site.nextScanAt
+                        ? site.nextScanAt.toISOString()
+                        : null,
+                      lastScanAt: status?.lastScanAt
+                        ? status.lastScanAt.toISOString()
+                        : null,
+                      lastScore: status?.lastScore ?? null,
+                    };
+                  })}
+                />
+              </div>
+            </section>
+          )}
+        </aside>
+      </div>
+
+      {hasFeature(plan, "continuousMonitoring") && websites.length > 0 && (
+        <ComplianceTrendChart
+          websites={websites.map((w) => ({ id: w.id, url: w.url }))}
+        />
+      )}
+    </div>
   );
 }

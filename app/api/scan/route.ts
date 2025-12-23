@@ -1,37 +1,96 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { runScanJob } from "@/lib/scanner/runScanJob";
 
-export const runtime = "nodejs";
+/**
+ * GET /api/scan?scanId=xxx  → returns current scan status
+ * POST /api/scan            → creates a one-off anonymous scan
+ */
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const scanId = searchParams.get("scanId") ?? searchParams.get("jobId");
 
-export async function POST(req: Request) {
-  const { url } = await req.json();
-
-  // ✅ MUST await auth()
-  const { userId } = await auth();
-
-  if (!url) {
-    return NextResponse.json({ error: "Missing URL" }, { status: 400 });
+  if (!scanId) {
+    return NextResponse.json(
+      { error: "Missing scanId" },
+      { status: 400 }
+    );
   }
 
-  const scan = await prisma.scan.create({
-    data: {
-      url,
-      userId: userId ?? null,     // ✅ anonymous allowed
-      score: 62,
-      riskLevel: "Medium",
-      summaryIssues: ["Missing alt text"],
-      allIssues: [
-        {
-          id: "alt-text",
-          title: "Images missing alt text",
-          severity: "high",
-          description: "Screen readers cannot interpret images.",
-          fix: "Add descriptive alt attributes.",
-        },
-      ],
+  const scan = await prisma.scanJob.findUnique({
+    where: { id: scanId },
+    select: {
+      id: true,
+      status: true,
+      score: true,
+      createdAt: true,
     },
   });
 
-  return NextResponse.json({ scanId: scan.id });
+  if (!scan) {
+    return NextResponse.json(
+      { error: "Scan not found" },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({
+    scanId: scan.id,
+    status: scan.status.toLowerCase(),
+    score: scan.score,
+    createdAt: scan.createdAt,
+  });
+}
+
+export async function POST(req: Request) {
+  try {
+    const { url } = (await req.json()) as { url?: string };
+
+    const normalizedUrl = typeof url === "string" ? url.trim() : "";
+
+    if (!normalizedUrl) {
+      return NextResponse.json(
+        { error: "MISSING_URL" },
+        { status: 400 }
+      );
+    }
+
+    let parsed: URL;
+    try {
+      parsed = new URL(normalizedUrl);
+    } catch {
+      return NextResponse.json(
+        { error: "INVALID_URL", reason: "URL could not be parsed" },
+        { status: 400 }
+      );
+    }
+
+    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+      return NextResponse.json(
+        {
+          error: "LOCALHOST_NOT_SUPPORTED",
+          reason: "Localhost URLs cannot be scanned",
+        },
+        { status: 400 }
+      );
+    }
+
+    const job = await prisma.scanJob.create({
+      data: {
+        type: "anonymous",
+        status: "QUEUED",
+      },
+    });
+
+    // Fire-and-forget anonymous scan
+    runScanJob(job.id);
+
+    return NextResponse.json({ scanId: job.id });
+  } catch (error) {
+    console.error("ANON_SCAN_FAILED", error);
+    return NextResponse.json(
+      { error: "SCAN_FAILED" },
+      { status: 500 }
+    );
+  }
 }

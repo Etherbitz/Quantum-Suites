@@ -26,13 +26,11 @@ export async function POST() {
       where: { clerkId: userId },
       update: {
         email,
-        updatedAt: new Date(),
       },
       create: {
         clerkId: userId,
         email,
         plan: "free",
-        websitesUsed: 0,
       },
     });
 

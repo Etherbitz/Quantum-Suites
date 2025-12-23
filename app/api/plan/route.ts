@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
 
-const ALLOWED_PLANS = ["starter", "business"] as const;
+const ALLOWED_PLANS = ["starter", "business", "agency"] as const;
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -16,6 +16,18 @@ export async function POST(req: Request) {
     );
   }
 
+  const user = await getOrCreateUser(
+    userId,
+    clerkUser.emailAddresses[0].emailAddress
+  );
+
+  if (user.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "FORBIDDEN" },
+      { status: 403 }
+    );
+  }
+
   const { plan } = await req.json();
 
   if (!ALLOWED_PLANS.includes(plan)) {
@@ -24,11 +36,6 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-
-  const user = await getOrCreateUser(
-    userId,
-    clerkUser.emailAddresses[0].emailAddress
-  );
 
   await prisma.user.update({
     where: { id: user.id },

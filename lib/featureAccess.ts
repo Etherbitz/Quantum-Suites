@@ -12,10 +12,14 @@ export type PlanConfig = (typeof PLANS)[Plan];
  *
  * Example:
  *   hasFeature(user.plan, "detailedReports")
+ *
+ * Accepts loose plan values and safely falls back to false
+ * for unknown or null/undefined plans.
  */
 export function hasFeature(
-  plan: Plan,
+  plan: Plan | string | null | undefined,
   feature: keyof PlanConfig
 ): boolean {
-  return Boolean(PLANS[plan][feature]);
+  const config = PLANS[plan as Plan];
+  return Boolean(config?.[feature]);
 }

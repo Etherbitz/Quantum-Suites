@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { OnboardingFlow } from "@/components/OnboardingFlow";
+import { OnboardingFlow } from "@/components/onboarding/OnboardFlow";
 import { trackEvent } from "@/lib/analytics/track";
 
 export default function SignUpCompletePage() {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PricingCard } from "@/components/PricingCard";
-import { UpgradeButton } from "@/components/UpgradeButton";
+import { PricingCard } from "@/components/common/PricingCard";
+import { UpgradeButton } from "@/components/common/UpgradeButton";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
@@ -33,19 +33,19 @@ export default async function PricingPage() {
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          <Link href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             Quantum Suites AI
-          </a>
+          </Link>
           <div className="flex gap-4">
-            <a href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+            <Link href="/" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
               Home
-            </a>
-            <a href="/scan" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
+            </Link>
+            <Link href="/scan" className="px-4 py-2 text-gray-700 font-medium hover:text-blue-600 transition-colors">
               Free Scan
-            </a>
-            <a href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+            </Link>
+            <Link href="/sign-up" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
               Sign Up
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -80,11 +80,12 @@ export default async function PricingPage() {
           <PricingCard
             title="Starter"
             price="$29/month"
-            subtitle="For small websites getting started"
+            subtitle="For single sites that need a basic compliance health check"
             features={[
-              "1 website",
-              "Weekly compliance scans",
-              "Risk score & summary report",
+              "Monitor 1 website",
+              "Weekly compliance scans & refreshed score",
+              "WCAG, GDPR, and security basics",
+              "Plain-language summary of top issues",
             ]}
             action={
               currentPlan === "starter" ? (
@@ -107,13 +108,14 @@ export default async function PricingPage() {
           <PricingCard
             title="Business"
             price="$79/month"
-            subtitle="Most Popular"
+             subtitle="For teams that need continuous monitoring, audit-ready history, and a taste of AI help"
             highlight
             features={[
-              "Continuous monitoring",
-              "Detailed compliance reports",
-              "Change alerts",
-              "Downloadable audit trail",
+               "Monitor up to 10 websites with continuous scanning",
+               "Full WCAG, GDPR, and security issue breakdowns",
+               "Change alerts when your risk score drops",
+               "Downloadable CSV audit trail for stakeholders",
+               "5 AI assistant sessions per month included",
             ]}
             action={
               currentPlan === "business" ? (
@@ -135,20 +137,28 @@ export default async function PricingPage() {
           {/* Agency */}
           <PricingCard
             title="Agency"
-            price="Coming Soon"
-            subtitle="For agencies and multi-site owners"
+            price="$199/month"
+            subtitle="For agencies managing many client sites with AI assistance"
             features={[
-              "Multiple websites",
-              "Central dashboard",
-              "White-label reporting",
+               "Unlimited client websites",
+               "Central, multi-site compliance dashboard",
+               "White-label, exportable reports for your clients",
+               "AI assistant to help prioritize and fix issues (500 replies/month included)",
             ]}
             action={
-              <button
-                disabled
-                className="w-full rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+              currentPlan === "agency" ? (
+                <button
+                  disabled
+                  className="w-full rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
+                >
+                  Current Plan
+                </button>
+              ) : (
+                <UpgradeButton
+                  plan="agency"
+                  label="Upgrade to Agency"
+                />
+              )
             }
           />
           </div>

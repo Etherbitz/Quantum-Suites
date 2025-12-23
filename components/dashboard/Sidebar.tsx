@@ -1,69 +1,50 @@
-"use client";
-
+import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { hasFeature } from "@/lib/featureAccess";
-import type { Plan } from "@/lib/plans";
-import { UsageMeter } from "@/components/UsageMeter";
 
-/**
- * Sidebar navigation component.
- */
-export function Sidebar() {
-  const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+interface SidebarProps {
+  isAdmin?: boolean;
+}
 
-  useEffect(() => {
-    fetch("/api/usage")
-      .then((res) => res.json())
-      .then(setUser)
-      .catch(() => {});
-  }, []);
-
-  const navItems = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Reports", href: "/dashboard/reports" },
-    { label: "Settings", href: "/dashboard/settings" },
-  ];
-
-  const gatedNavItems = [
-    ...(user && hasFeature(user.plan as Plan, "continuousMonitoring") ? [{ label: "Monitoring", href: "/dashboard/monitoring" }] : []),
-    ...(user && hasFeature(user.plan as Plan, "changeAlerts") ? [{ label: "Alerts", href: "/dashboard/alerts" }] : []),
+export const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
+  const menuItems = [
+    { href: "/dashboard", label: "Overview" },
+    ...(isAdmin
+      ? [
+          { href: "/dashboard/analytics", label: "Analytics" },
+          { href: "/dashboard/reports", label: "Reports" },
+        ]
+      : []),
   ];
 
   return (
-    <aside className="w-64 border-r bg-white px-4 py-6">
-      <h2 className="mb-6 text-xl font-semibold text-gray-900">
-        Quantum Suites AI
-      </h2>
+    <aside className="flex w-60 flex-col border-r border-neutral-800 bg-neutral-950/80 px-4 py-6 text-sm text-neutral-300">
+      <div className="mb-6 px-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+          Quantum Suites
+        </p>
+        <h2 className="mt-1 text-lg font-semibold text-neutral-50">
+          Dashboard
+        </h2>
+      </div>
 
-      <nav className="space-y-2">
-        {[...navItems, ...gatedNavItems].map((item) => {
-          const active = pathname === item.href;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`
-                block rounded-lg px-3 py-2 text-sm font-medium transition
-                ${
-                  active
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }
-              `}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-1">
+        <ul className="space-y-1">
+          {menuItems.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="block rounded-xl px-3 py-2 text-sm font-medium text-neutral-300 transition hover:bg-neutral-800 hover:text-neutral-50"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </nav>
 
-      <div className="mt-6">
-        <UsageMeter />
+      <div className="mt-6 border-t border-neutral-800 pt-4 text-[11px] text-neutral-500">
+        <p>Compliance snapshots, recent scans, and alerts in one place.</p>
       </div>
     </aside>
   );
-}
+};

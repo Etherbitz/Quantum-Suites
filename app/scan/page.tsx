@@ -3,14 +3,69 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { UsageMeter } from "@/components/UsageMeter";
-import { useScanJobPolling } from "@/components/useScanJobPolling";
+import { UsageMeter } from "@/components/common/UsageMeter";
+import { useScanJobPolling } from "@/components/scan/useScanJobPolling";
+
+type ScanCreateResponse = {
+  scanJobId?: string;
+  scanId?: string;
+  error?: string;
+  reason?: string;
+};
+
+type ScanError = {
+  title: string;
+  message: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+};
+
+const isDev = process.env.NODE_ENV === "development";
+
+function mapScanError(error?: string | null, reason?: string | null): ScanError {
+  const combined = `${error ?? ""} ${reason ?? ""}`.toUpperCase();
+
+  switch (error) {
+    case "WEBSITE_LIMIT_REACHED":
+      return {
+        title: "Website limit reached",
+        message:
+          "Your free plan includes 1 website. Upgrade to scan multiple sites, schedule scans, and receive alerts.",
+        ctaLabel: "Upgrade Plan",
+        ctaHref: "/billing",
+      };
+
+    case "LOCALHOST_NOT_SUPPORTED":
+      return {
+        title: "Localhost scans are not supported",
+        message:
+          "Please enter a publicly accessible website URL. Localhost URLs cannot be scanned.",
+      };
+
+    default:
+      if (combined.includes("FETCH_FAILED")) {
+        return {
+          title: "Site blocked automated scans",
+          message:
+            "This website may be blocking automated scans. Results may be limited or unavailable.",
+        };
+      }
+
+      return {
+        title: "Scan failed",
+        message:
+          isDev && reason
+            ? reason
+            : "Something went wrong. Please try again.",
+      };
+  }
+}
 
 export default function ScanPage() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ScanError | null>(null);
   const [scanJobId, setScanJobId] = useState<string | null>(null);
 
   const {
@@ -20,7 +75,7 @@ export default function ScanPage() {
   } = useScanJobPolling({
     scanJobId,
     onCompleted: (scanId) => router.push(`/scan/results?scanId=${scanId}`),
-    onFailed: (message) => setError(message),
+    onFailed: (message) => setError(mapScanError(message)),
   });
 
   const isBusy = loading || polling || Boolean(scanJobId);
@@ -39,15 +94,17 @@ export default function ScanPage() {
         body: JSON.stringify({ url }),
       });
 
-      let payload: any = null;
+      let payload: ScanCreateResponse | null = null;
       try {
-        payload = await res.json();
-      } catch (err) {
+        payload = (await res.json()) as ScanCreateResponse;
+      } catch {
         payload = null;
       }
 
-      if (res.ok && payload?.scanJobId) {
-        setScanJobId(payload.scanJobId);
+      const payloadScanId = payload?.scanJobId ?? payload?.scanId;
+
+      if (res.ok && payloadScanId) {
+        setScanJobId(payloadScanId);
         return;
       }
 
@@ -67,13 +124,13 @@ export default function ScanPage() {
         return;
       }
 
-      const message = payload?.error || "Unable to start scan. Please try again.";
-      setError(message);
+      setError(mapScanError(payload?.error, payload?.reason));
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to start scan. Please try again."
+        mapScanError(
+          err instanceof Error ? err.message : null,
+          err instanceof Error ? err.message : null
+        )
       );
     } finally {
       setLoading(false);
@@ -183,9 +240,23 @@ export default function ScanPage() {
               )}
 
               {error && (
-                <p className="text-center text-sm text-red-600">
-                  {error}
-                </p>
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <h4 className="font-semibold text-red-700">
+                    {error.title}
+                  </h4>
+                  <p className="text-sm text-red-600 mt-1">
+                    {error.message}
+                  </p>
+
+                  {error.ctaHref && (
+                    <Link
+                      href={error.ctaHref}
+                      className="mt-3 inline-block rounded-md bg-black px-4 py-2 text-sm text-white"
+                    >
+                      {error.ctaLabel}
+                    </Link>
+                  )}
+                </div>
               )}
 
               <p className="text-center text-sm text-gray-500">

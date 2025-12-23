@@ -1,98 +1,37 @@
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
-const POLL_INTERVAL_MS = 2000;
-const MAX_ATTEMPTS = 90;
-const SPINNER_DELAY_MS = 300;
+/**
+ * Returns current scan status
+ * GET /api/scan/create/status?scanId=xxx
+ */
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const scanId = searchParams.get("scanId");
 
-export function useScanJobPolling(scanJobId: string | null) {
-  const router = useRouter();
-  const [status, setStatus] = useState<
-    "queued" | "running" | "completed" | "failed"
-  >("queued");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const attemptsRef = useRef(0);
-  const spinnerTimeoutRef = useRef<number | null>(null);
-  const intervalRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!scanJobId) return;
-
-    spinnerTimeoutRef.current = window.setTimeout(
-      () => setLoading(true),
-      SPINNER_DELAY_MS
+  if (!scanId) {
+    return NextResponse.json(
+      { error: "Missing scanId" },
+      { status: 400 }
     );
+  }
 
-    return () => {
-      if (spinnerTimeoutRef.current)
-        window.clearTimeout(spinnerTimeoutRef.current);
-    };
-  }, [scanJobId]);
+  const scan = await prisma.scanJob.findUnique({
+    where: { id: scanId },
+    select: {
+      id: true,
+      status: true,
+      score: true,
+      createdAt: true,
+    },
+  });
 
-  useEffect(() => {
-    if (!scanJobId) return;
+  if (!scan) {
+    return NextResponse.json(
+      { error: "Scan not found" },
+      { status: 404 }
+    );
+  }
 
-    let active = true;
-
-    intervalRef.current = window.setInterval(async () => {
-      attemptsRef.current += 1;
-
-      if (attemptsRef.current > MAX_ATTEMPTS) {
-        window.clearInterval(intervalRef.current!);
-        if (active) {
-          setStatus("failed");
-          setError("Scan timed out. Please try again.");
-          setLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const res = await fetch(
-          `/api/scan/status?jobId=${scanJobId}`
-        );
-        if (!res.ok) throw new Error();
-
-        const data = await res.json();
-        setStatus(data.status);
-
-        if (data.status === "completed") {
-          window.clearInterval(intervalRef.current!);
-          setLoading(false);
-          if (active && data.scanId) {
-            router.push(`/scan/results?scanId=${data.scanId}`);
-          }
-        }
-
-        if (data.status === "failed") {
-          window.clearInterval(intervalRef.current!);
-          setError("Scan failed. Please try again.");
-          setLoading(false);
-        }
-      } catch {
-        window.clearInterval(intervalRef.current!);
-        if (active) {
-          setError("Could not check scan status.");
-          setLoading(false);
-        }
-      }
-    }, POLL_INTERVAL_MS);
-
-    return () => {
-      active = false;
-      if (intervalRef.current)
-        window.clearInterval(intervalRef.current);
-    };
-  }, [scanJobId, router]);
-
-  const retry = () => {
-    attemptsRef.current = 0;
-    setError(null);
-    setStatus("queued");
-    setLoading(false);
-  };
-
-  return { status, loading, error, retry };
+  return NextResponse.json(scan);
 }

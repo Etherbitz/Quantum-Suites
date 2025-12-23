@@ -4,35 +4,193 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["native"]
 }
 
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ScanStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+
+/**
+ * =========================
+ * USER
+ * =========================
+ */
 
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
-  email     String   @unique
-  plan      String   @default("free")
-  
-  websitesUsed   Int      @default(0)
-  
+  email     String
+  plan      String   @default("free") @db.VarChar(20)
+  role      UserRole @default(USER)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
-  scans Scan[]
+  // Profile fields
+  firstName     String?
+  lastName      String?
+  company       String?
+  jobTitle      String?
+  phone         String?
+  timezone      String?
+  locale        String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  postalCode    String?
+  country       String?
+  marketingOptIn Boolean @default(false)
+
+  alertDropThreshold Int?
+
+  websites Website[]
+  scanJobs ScanJob[]
+  alerts   ComplianceAlert[]
+
+  aiUsages AiUsage[]
 }
 
-model Scan {
-  id            String   @id @default(cuid())
-  userId        String?
-  url           String
-  score         Int
-  riskLevel     String
-  summaryIssues String[]
-  allIssues     Json
-  createdAt     DateTime @default(now())
+/**
+ * =========================
+ * WEBSITE
+ * =========================
+ */
 
-  user User? @relation(fields: [userId], references: [id])
+model Website {
+  id         String    @id @default(cuid())
+  userId     String
+  url        String
+  createdAt  DateTime  @default(now())
+  nextScanAt DateTime?
+
+  user     User      @relation(fields: [userId], references: [id])
+  scanJobs ScanJob[]
+
+  @@unique([userId, url])
+}
+
+/**
+ * =========================
+ * SCAN JOB (SINGLE SOURCE)
+ * =========================
+ */
+
+model ScanJob {
+  id         String     @id @default(cuid())
+  userId     String?
+  websiteId  String?
+
+  status     ScanStatus @default(QUEUED)
+  type       String
+
+  score      Int?
+  summary    Json?
+  results    Json?
+  error      String?
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  user       User?             @relation(fields: [userId], references: [id])
+  website    Website?          @relation(fields: [websiteId], references: [id])
+  alerts     ComplianceAlert[]
 
   @@index([userId])
+  @@index([websiteId])
+  @@index([status])
+}
+
+/**
+ * =========================
+ * COMPLIANCE ALERTS
+ * =========================
+ */
+
+model ComplianceAlert {
+  id            String   @id @default(cuid())
+  userId        String
+  scanJobId     String?
+  previousScore Int
+  currentScore  Int
+  delta         Int
+  severity      String // warning | critical
+  acknowledged  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  scanJob ScanJob? @relation(fields: [scanJobId], references: [id])
+
+  @@index([userId])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model AiUsage {
+  id          String   @id @default(cuid())
+  userId      String
+  periodStart DateTime
+  count       Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, periodStart])
+  @@index([userId])
+}
+
+/**
+ * =========================
+ * REGULATIONS
+ * =========================
+ */
+
+model Regulation {
+  id           String   @id @default(cuid())
+  name         String
+  version      String
+  category     String
+  description  String
+  sourceUrl    String?
+  lastReviewed DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rules RegulationRule[]
+
+  @@unique([name, version], name: "name_version")
+}
+
+model RegulationRule {
+  id           String   @id @default(cuid())
+  regulationId String
+  code         String
+  version      String
+  title        String
+  section      String?
+  description  String
+  category     String
+  level        String?
+  sourceUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  regulation Regulation @relation(fields: [regulationId], references: [id])
+
+  @@unique([code, version], name: "code_version")
+  @@index([regulationId])
 }

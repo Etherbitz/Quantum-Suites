@@ -1,39 +1,35 @@
-import Link from "next/link";
+import React from 'react';
 
-/**
- * Recent scan table.
- */
-export function ScanTable() {
+export const ScanTable: React.FC = () => {
+  // Sample data - replace with actual data
+  const scans = [
+    { id: 1, website: 'example.com', status: 'Completed', issues: 3, lastScan: '2h ago' },
+    { id: 2, website: 'test.com', status: 'In Progress', issues: 0, lastScan: '1d ago' },
+  ];
+
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-900">
-        Recent Scans
-      </h2>
-
-      <table className="mt-4 w-full text-sm">
-        <thead className="text-left text-gray-500">
+    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <h2 className="text-lg font-semibold p-4 border-b">Recent Scans</h2>
+      <table className="w-full">
+        <thead className="bg-gray-50">
           <tr>
-            <th>Website</th>
-            <th>Date</th>
-            <th>Risk</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Website</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Issues</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Last Scan</th>
           </tr>
         </thead>
-
-        <tbody className="divide-y">
-          <tr>
-            <td>example.com</td>
-            <td>Today</td>
-            <td className="text-amber-600 font-medium">Medium</td>
-          </tr>
+        <tbody>
+          {scans.map((scan) => (
+            <tr key={scan.id} className="border-t">
+              <td className="px-4 py-2 text-sm">{scan.website}</td>
+              <td className="px-4 py-2 text-sm">{scan.status}</td>
+              <td className="px-4 py-2 text-sm">{scan.issues}</td>
+              <td className="px-4 py-2 text-sm">{scan.lastScan}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
-
-      <Link
-        href="/dashboard/reports"
-        className="mt-4 inline-block text-sm text-blue-600 hover:underline"
-      >
-        View all reports →
-      </Link>
     </div>
   );
-}
+};

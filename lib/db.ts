@@ -1,18 +1,41 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma?: PrismaClient;
-};
+/**
+ * Global type declaration so Prisma survives hot reloads in dev.
+ */
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
+/**
+ * Create a single shared PG pool.
+ * Prisma 7 requires adapters for optimal serverless behavior.
+ */
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+/**
+ * Create Prisma adapter.
+ */
+const adapter = new PrismaPg(pool);
+
+/**
+ * Instantiate Prisma once.
+ * Reuse across reloads in development.
+ */
 export const prisma =
-  globalForPrisma.prisma ??
+  global.prisma ??
   new PrismaClient({
-    log: ["error"],
-    adapter: new PrismaPg(new Pool({ connectionString: process.env.DATABASE_URL })),
+    adapter,
   });
 
+/**
+ * Cache Prisma client in dev only.
+ * Prevents multiple instances during HMR.
+ */
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  global.prisma = prisma;
 }

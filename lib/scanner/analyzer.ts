@@ -7,25 +7,38 @@
 import type { PageContent } from "@/lib/scanner/types";
 
 export class WebsiteAnalyzer {
-  private timeout: number = 10000; // 10 seconds
+  private timeout: number = 15000; // 15 seconds timeout safeguard
 
   async fetchPage(url: string): Promise<PageContent> {
     const startTime = Date.now();
 
     try {
-      const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+      const normalizedUrl = url.startsWith("http://")
+        ? url.replace("http://", "https://")
+        : url.startsWith("http")
+          ? url
+          : `https://${url}`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      const response = await fetch(fullUrl, {
+      const response = await fetch(normalizedUrl, {
         signal: controller.signal,
+        redirect: "follow",
         headers: {
-          "User-Agent": "Quantum-Suites-Compliance-Scanner/1.0",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
         },
       });
 
       clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`FETCH_FAILED_${response.status}`);
+      }
 
       const html = await response.text();
       const responseTime = Date.now() - startTime;
