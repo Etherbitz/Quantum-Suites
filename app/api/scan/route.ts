@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { runScanJob } from "@/lib/scanner/runScanJob";
 
+export const runtime = "nodejs";
+
 /**
  * GET /api/scan?scanId=xxx  → returns current scan status
  * POST /api/scan            → creates a one-off anonymous scan
@@ -120,7 +122,13 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("ANON_SCAN_FAILED", error);
     return NextResponse.json(
-      { error: "SCAN_FAILED" },
+      {
+        error: "SCAN_FAILED",
+        reason:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      },
       { status: 500 }
     );
   }

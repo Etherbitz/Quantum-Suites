@@ -32,7 +32,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self';",
               // Allow Clerk JS to load from your Clerk instance domain
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.quantumsuites-ai.com https://*.clerk.accounts.dev;",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.quantumsuites-ai.com https://*.clerk.accounts.dev blob:;",
+              "worker-src 'self' blob: https://clerk.quantumsuites-ai.com https://*.clerk.accounts.dev;",
               "style-src 'self' 'unsafe-inline';",
               "img-src 'self' data: https:;",
               "font-src 'self' data: https:;",
