@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
               "default-src 'self';",
               // Allow Clerk JS to load from your Clerk instance domain
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.quantumsuites-ai.com https://*.clerk.accounts.dev blob:;",
+              // Allow embedded iframes such as Clerk CAPTCHA challenges
+              "frame-src 'self' https:;",
               "worker-src 'self' blob: https://clerk.quantumsuites-ai.com https://*.clerk.accounts.dev;",
               "style-src 'self' 'unsafe-inline';",
               "img-src 'self' data: https:;",
