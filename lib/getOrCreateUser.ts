@@ -7,15 +7,23 @@ export async function getOrCreateUser(
 ): Promise<User> {
   const normalizedEmail = email.toLowerCase();
 
+  const isAdminEmail =
+    normalizedEmail === "admin@quantumsuites-ai.com";
+
   return prisma.user.upsert({
     where: { clerkId },
-    // Do not override role here; it is managed explicitly (e.g. via admin tools/Prisma Studio)
-    update: { email: normalizedEmail },
+    update: {
+      email: normalizedEmail,
+      ...(isAdminEmail && {
+        role: "ADMIN",
+        plan: "agency",
+      }),
+    },
     create: {
       clerkId,
       email: normalizedEmail,
-      plan: "free",
-      role: "USER",
+      plan: isAdminEmail ? "agency" : "free",
+      role: isAdminEmail ? "ADMIN" : "USER",
     },
   });
 }
