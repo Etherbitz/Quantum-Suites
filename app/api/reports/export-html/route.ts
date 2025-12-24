@@ -50,7 +50,9 @@ export async function GET(req: Request) {
     if (toParam) {
       const d = new Date(toParam);
       if (!Number.isNaN(d.getTime())) {
-        createdAtFilter.lte = d;
+        const endOfDay = new Date(d);
+        endOfDay.setHours(23, 59, 59, 999);
+        createdAtFilter.lte = endOfDay;
       }
     }
 
@@ -146,6 +148,21 @@ export async function GET(req: Request) {
     const totalScans = scans.length;
     const fromDate = scans[scans.length - 1]?.createdAt ?? null;
     const toDate = scans[0]?.createdAt ?? null;
+
+    const latestScan = scans[0] ?? null;
+    const latestScore = latestScan?.score ?? null;
+    const latestRisk = getComplianceRisk(latestScore);
+
+    let passFailLabel = "";
+    if (typeof latestScore === "number") {
+      if (latestScore >= 80) {
+        passFailLabel = "Pass";
+      } else if (latestScore < 50) {
+        passFailLabel = "Fail";
+      } else {
+        passFailLabel = "Needs attention";
+      }
+    }
 
     const formatDate = (d: Date | string | null | undefined) => {
       if (!d) return "—";
@@ -349,6 +366,21 @@ export async function GET(req: Request) {
             )})`
           : ""
       }</p>
+      <p class="muted">
+        ${latestScan
+          ? typeof latestScore === "number"
+            ? escapeHtml(
+                `Latest score: ${latestScore}/100 (${latestRisk.label}$${
+                  passFailLabel ? " – " + passFailLabel : ""
+                }) on ${formatDate(latestScan.createdAt)}`
+              )
+            : escapeHtml(
+                `Latest scan is pending (created at ${formatDate(
+                  latestScan.createdAt
+                )})`
+              )
+          : "No scans yet – run your first scan to populate this report."}
+      </p>
       <p class="muted">Generated at: ${escapeHtml(formatDate(new Date()))}</p>
     </div>
 

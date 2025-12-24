@@ -71,6 +71,25 @@ export default function RootLayout({
             </div>
           </header>
           {children}
+
+          <footer className="border-t border-neutral-900 bg-neutral-950/95">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[11px] sm:text-xs">
+                © {new Date().getFullYear()} Quantum Suites AI. All rights reserved.
+              </p>
+              <nav className="flex flex-wrap items-center gap-4 text-[11px] sm:text-xs">
+                <Link href="/privacy" className="hover:text-neutral-200">
+                  Privacy policy
+                </Link>
+                <Link href="/terms" className="hover:text-neutral-200">
+                  Terms of service
+                </Link>
+                <Link href="/contact" className="hover:text-neutral-200">
+                  Contact
+                </Link>
+              </nav>
+            </div>
+          </footer>
           <CookieBanner />
         </body>
       </html>

@@ -147,14 +147,23 @@ export class WebsiteAnalyzer {
   }
 
   private extractHeadings(html: string): Array<{ level: number; text: string }> {
-    const headingRegex = /<h([1-6])[^>]*>([^<]+)<\/h\1>/gi;
+    // Allow nested markup inside headings and strip tags to get readable text
+    const headingRegex = /<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi;
     const headings: Array<{ level: number; text: string }> = [];
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = headingRegex.exec(html)) !== null) {
+      const innerHtml = match[2] ?? "";
+      const text = innerHtml
+        .replace(/<[^>]+>/g, " ") // strip tags
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!text) continue;
+
       headings.push({
-        level: parseInt(match[1]),
-        text: match[2].trim(),
+        level: parseInt(match[1], 10),
+        text,
       });
     }
 

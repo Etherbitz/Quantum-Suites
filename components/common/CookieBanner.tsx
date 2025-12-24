@@ -6,12 +6,16 @@ import Link from "next/link";
 const STORAGE_KEY = "qs-cookie-consent";
 
 export function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+  // Render visible by default in the initial HTML so scanners
+  // and first-time visitors see the banner before any scripts run.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const value = window.localStorage.getItem(STORAGE_KEY);
-    if (!value) {
+    if (value) {
+      setVisible(false);
+    } else {
       setVisible(true);
     }
   }, []);

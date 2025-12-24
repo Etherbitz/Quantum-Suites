@@ -87,7 +87,9 @@ export async function GET(req: Request) {
     if (toParam) {
       const d = new Date(toParam);
       if (!Number.isNaN(d.getTime())) {
-        createdAtFilter.lte = d;
+        const endOfDay = new Date(d);
+        endOfDay.setHours(23, 59, 59, 999);
+        createdAtFilter.lte = endOfDay;
       }
     }
 
