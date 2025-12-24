@@ -52,6 +52,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "quantum-suites-ai.vercel.app",
+          },
+        ],
+        destination: "https://www.quantumsuites-ai.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
