@@ -233,10 +233,10 @@ function HowItWorksSection() {
             title="Get a Clear Risk Score"
             description="We turn raw findings into a single score and plain‑English summary so non‑technical stakeholders can understand the risk."
           />
-          <StepCard
-            title="Stay Monitored Automatically"
-            description="Starter runs weekly scans, Business and Agency monitor continuously and alert you when scores drop."
-          />
+            <StepCard
+              title="Stay Monitored Automatically"
+              description="Starter runs weekly scans. Business and Agency can keep sites on automatic daily monitoring with alerts when scores drop."
+            />
         </div>
 
         <p className="mt-12 font-bold text-emerald-400 text-lg">
@@ -333,13 +333,13 @@ function PricingSection() {
           <PricingCard
             title="Business"
             price="$79/month"
-            subtitle="For teams that need continuous monitoring, audit-ready history, and a taste of AI help"
+            subtitle="For teams that want automated daily monitoring, alerts, and exportable evidence for stakeholders"
             highlight
             features={[
-              "Monitor up to 10 websites with continuous scanning",
+              "Monitor up to 10 websites with automated daily scanning",
               "Full WCAG, GDPR, and security issue breakdowns",
               "Change alerts when your risk score drops",
-              "Downloadable CSV audit trail for stakeholders",
+              "Downloadable CSV and HTML/PDF audit reports for stakeholders",
               "5 AI assistant sessions per month included",
             ]}
           />
@@ -347,11 +347,11 @@ function PricingSection() {
           <PricingCard
             title="Agency"
             price="$199/month"
-            subtitle="For agencies managing many client sites with AI assistance"
+            subtitle="For agencies managing many client sites with branded reports and AI assistance"
             features={[
-              "Unlimited client websites",
+              "Unlimited client websites with automated daily monitoring",
               "Central, multi-site compliance dashboard",
-              "White-label, exportable reports for your clients",
+              "White-label CSV and HTML/PDF reports for your clients",
               "AI assistant to help prioritize and fix issues (500 replies/month included)",
             ]}
           />

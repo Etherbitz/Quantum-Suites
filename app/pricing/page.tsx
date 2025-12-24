@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     "Transparent pricing for automated website compliance monitoring.",
   alternates: {
-    canonical: "https://quantumsuites.ai/pricing",
+    canonical: "https://www.quantumsuites-ai.com/pricing",
   },
 };
 
@@ -108,13 +108,13 @@ export default async function PricingPage() {
           <PricingCard
             title="Business"
             price="$79/month"
-             subtitle="For teams that need continuous monitoring, audit-ready history, and a taste of AI help"
+             subtitle="For teams that want automated daily monitoring, alerts, and exportable compliance evidence"
             highlight
             features={[
-               "Monitor up to 10 websites with continuous scanning",
+               "Monitor up to 10 websites with automated daily scanning",
                "Full WCAG, GDPR, and security issue breakdowns",
                "Change alerts when your risk score drops",
-               "Downloadable CSV audit trail for stakeholders",
+               "Downloadable CSV and HTML audit reports for stakeholders",
                "5 AI assistant sessions per month included",
             ]}
             action={
@@ -138,12 +138,12 @@ export default async function PricingPage() {
           <PricingCard
             title="Agency"
             price="$199/month"
-            subtitle="For agencies managing many client sites with AI assistance"
+            subtitle="For agencies managing many client sites with branded reports and AI assistance"
             features={[
-               "Unlimited client websites",
-               "Central, multi-site compliance dashboard",
-               "White-label, exportable reports for your clients",
-               "AI assistant to help prioritize and fix issues (500 replies/month included)",
+              "Unlimited client websites with automated daily scanning",
+              "Central, multi-site compliance dashboard for all clients",
+              "White-label CSV and HTML reports you can send to stakeholders",
+              "AI assistant to help prioritize and fix issues (500 replies/month included)",
             ]}
             action={
               currentPlan === "agency" ? (

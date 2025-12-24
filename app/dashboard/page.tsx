@@ -62,7 +62,7 @@ export default async function DashboardPage() {
   // Map website -> latest scan status for monitoring overview
   const websiteStatus = new Map<
     string,
-    { lastScanAt: Date; lastScore: number | null }
+    { lastScanAt: Date; lastScore: number | null; lastScanId: string }
   >();
 
   for (const scan of scans) {
@@ -74,6 +74,7 @@ export default async function DashboardPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       lastScanAt: (scan as any).createdAt as Date,
       lastScore: scan.score ?? null,
+      lastScanId: scan.id,
     });
   }
 
@@ -291,9 +292,20 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-semibold text-neutral-50">
                 Recent scans
               </h2>
-              <p className="text-[11px] text-neutral-500">
-                Showing your last {currentPeriod.length || 0} scans
-              </p>
+              <div className="flex flex-col items-end gap-1 text-[11px] text-neutral-500">
+                <p>
+                  Showing your last {currentPeriod.length || 0} scans
+                </p>
+                {latestScan && hasFeature(plan, "detailedReports") && (
+                  <a
+                    href={`/api/reports/export-html?scanId=${latestScan.id}`}
+                    className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-[11px] font-medium text-neutral-200 hover:border-neutral-500 hover:bg-neutral-800"
+                    title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
+                  >
+                    Export latest (HTML/PDF)
+                  </a>
+                )}
+              </div>
             </div>
             <ScanHistory scans={currentPeriod} />
           </section>
@@ -373,6 +385,7 @@ export default async function DashboardPage() {
               <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1 text-xs">
                 <WebsitesList
                   variant="dark"
+                  showExports={hasFeature(plan, "detailedReports")}
                   websites={websites.map((site) => {
                     const status = websiteStatus.get(site.id);
                     return {
@@ -385,6 +398,7 @@ export default async function DashboardPage() {
                         ? status.lastScanAt.toISOString()
                         : null,
                       lastScore: status?.lastScore ?? null,
+                      lastScanId: status?.lastScanId ?? null,
                     };
                   })}
                 />

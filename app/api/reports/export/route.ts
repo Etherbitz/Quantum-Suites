@@ -34,6 +34,10 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     let includeReports = searchParams.get("reports") !== null;
     const includeAudit = searchParams.get("audit") !== null;
+    const scanIdFilter = searchParams.get("scanId");
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    const websiteFilter = searchParams.get("website");
 
     // Backwards compatibility: no query params means "reports only"
     if (!includeReports && !includeAudit) {
@@ -52,47 +56,115 @@ export async function GET(req: Request) {
     }
 
     const header = [
-      "row_type",
-      "scan_id",
-      "website_url",
-      "status",
-      "score",
-      "risk_label",
-      "created_at",
-      "previous_score",
-      "current_score",
-      "delta",
-      "alert_severity",
-      "alert_created_at",
-      "acknowledged",
+      "Row",
+      "Scan ID",
+      "Website",
+      "Status",
+      "Score",
+      "Risk Label",
+      "Risk Level",
+      "Scan Type",
+      "Automation Enabled",
+      "Top Issues (most important first)",
+      "Scan Created At",
+      "Previous Score",
+      "Current Score",
+      "Score Change",
+      "Alert Severity",
+      "Alert Created At",
+      "Alert Acknowledged",
     ];
 
     const rows: string[][] = [];
 
+    const createdAtFilter: { gte?: Date; lte?: Date } = {};
+    if (fromParam) {
+      const d = new Date(fromParam);
+      if (!Number.isNaN(d.getTime())) {
+        createdAtFilter.gte = d;
+      }
+    }
+    if (toParam) {
+      const d = new Date(toParam);
+      if (!Number.isNaN(d.getTime())) {
+        createdAtFilter.lte = d;
+      }
+    }
+
     if (includeReports) {
       const scans = await prisma.scanJob.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          ...(scanIdFilter
+            ? {
+                id: scanIdFilter,
+              }
+            : {}),
+          ...(Object.keys(createdAtFilter).length
+            ? { createdAt: createdAtFilter }
+            : {}),
+          ...(websiteFilter
+            ? {
+                website: {
+                  url: {
+                    contains: websiteFilter,
+                    mode: "insensitive",
+                  },
+                },
+              }
+            : {}),
+        },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
           status: true,
           score: true,
+          type: true,
+          summary: true,
           createdAt: true,
           website: {
-            select: { url: true },
+            select: { url: true, nextScanAt: true },
           },
         },
       });
 
       for (const scan of scans) {
         const risk = getComplianceRisk(scan.score);
+        const summary = (scan.summary ?? {}) as {
+          riskLevel?: string;
+          topIssues?: string[];
+        };
+
+        const prettyStatus = String(scan.status)
+          .toLowerCase()
+          .replace(/^./, (c) => c.toUpperCase());
+
+        const prettyType =
+          scan.type === "scheduled"
+            ? "Scheduled (auto)"
+            : scan.type === "anonymous"
+            ? "Anonymous"
+            : "Manual";
+
+        const automationEnabled = scan.website?.nextScanAt ? "Yes" : "No";
+
+        const topIssuesText = Array.isArray(summary.topIssues)
+          ? summary.topIssues.join(" | ")
+          : "";
+
         rows.push([
-          "scan",
+          "Scan",
           scan.id,
           scan.website?.url ?? "",
-          String(scan.status),
-          String(scan.score ?? ""),
+          prettyStatus,
+          scan.score != null ? `${scan.score}/100` : "—",
           risk.label,
+          risk.level
+            ? risk.level.replace(/^./, (c) => c.toUpperCase())
+            : "",
+          prettyType,
+          automationEnabled,
+          topIssuesText,
           new Date(scan.createdAt).toISOString(),
           "",
           "",
@@ -106,7 +178,33 @@ export async function GET(req: Request) {
 
     if (includeAudit) {
       const alerts = await prisma.complianceAlert.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          ...(scanIdFilter
+            ? {
+                scanJobId: scanIdFilter,
+              }
+            : {}),
+          ...(Object.keys(createdAtFilter).length
+            ? {
+                scanJob: {
+                  createdAt: createdAtFilter,
+                },
+              }
+            : {}),
+          ...(websiteFilter
+            ? {
+                scanJob: {
+                  website: {
+                    url: {
+                      contains: websiteFilter,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+              }
+            : {}),
+        },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -121,31 +219,75 @@ export async function GET(req: Request) {
               id: true,
               status: true,
               score: true,
+              type: true,
+              summary: true,
               createdAt: true,
-              website: { select: { url: true } },
+              website: { select: { url: true, nextScanAt: true } },
             },
           },
         },
       });
 
       for (const alert of alerts) {
-        const risk = getComplianceRisk(alert.currentScore ?? alert.scanJob?.score);
+        const baseScore = alert.currentScore ?? alert.scanJob?.score;
+        const risk = getComplianceRisk(baseScore);
+        const summary = (alert.scanJob?.summary ?? {}) as {
+          riskLevel?: string;
+          topIssues?: string[];
+        };
+
+        const prettyStatus = String(alert.scanJob?.status ?? "")
+          .toLowerCase()
+          .replace(/^./, (c) => c.toUpperCase());
+
+        const prettyType =
+          alert.scanJob?.type === "scheduled"
+            ? "Scheduled (auto)"
+            : alert.scanJob?.type === "anonymous"
+            ? "Anonymous"
+            : "Manual";
+
+        const automationEnabled = alert.scanJob?.website?.nextScanAt
+          ? "Yes"
+          : "No";
+
+        const topIssuesText = Array.isArray(summary.topIssues)
+          ? summary.topIssues.join(" | ")
+          : "";
+
+        const scoreChange =
+          alert.delta != null && alert.delta !== 0
+            ? `${alert.delta > 0 ? "+" : ""}${alert.delta}`
+            : "0";
+
         rows.push([
-          "audit",
+          "Alert",
           alert.scanJob?.id ?? "",
           alert.scanJob?.website?.url ?? "",
-          String(alert.scanJob?.status ?? ""),
-          String(alert.scanJob?.score ?? ""),
+          prettyStatus,
+          alert.scanJob?.score != null
+            ? `${alert.scanJob.score}/100`
+            : "—",
           risk.label,
+          risk.level
+            ? risk.level.replace(/^./, (c) => c.toUpperCase())
+            : "",
+          prettyType,
+          automationEnabled,
+          topIssuesText,
           alert.scanJob?.createdAt
             ? new Date(alert.scanJob.createdAt).toISOString()
             : "",
-          String(alert.previousScore ?? ""),
-          String(alert.currentScore ?? ""),
-          String(alert.delta ?? ""),
-          alert.severity,
+          alert.previousScore != null
+            ? `${alert.previousScore}/100`
+            : "—",
+          alert.currentScore != null
+            ? `${alert.currentScore}/100`
+            : "—",
+          scoreChange,
+          alert.severity.replace(/^./, (c) => c.toUpperCase()),
           new Date(alert.createdAt).toISOString(),
-          String(alert.acknowledged),
+          alert.acknowledged ? "Yes" : "No",
         ]);
       }
     }

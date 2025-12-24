@@ -1,8 +1,37 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SiteLogo } from "@/components/common/SiteLogo";
 import { HeaderAuth } from "@/components/common/HeaderAuth";
+import { CookieBanner } from "@/components/common/CookieBanner";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    template: "%s | Quantum Suites AI",
+  },
+  description:
+    "Automated website accessibility, privacy, and security scanning with daily monitoring, alerts, and audit-ready reports.",
+  metadataBase: new URL("https://www.quantumsuites-ai.com"),
+  alternates: {
+    canonical: "https://www.quantumsuites-ai.com",
+  },
+  openGraph: {
+    title: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    description:
+      "See your compliance risk score, track changes over time, and export client-ready reports.",
+    url: "https://www.quantumsuites-ai.com",
+    siteName: "Quantum Suites AI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    description:
+      "Automated website compliance checks with daily monitoring, alerts, and exportable reports.",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -42,6 +71,7 @@ export default function RootLayout({
             </div>
           </header>
           {children}
+          <CookieBanner />
         </body>
       </html>
     </ClerkProvider>

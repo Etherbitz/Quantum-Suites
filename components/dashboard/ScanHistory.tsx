@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Calendar } from "lucide-react";
+import { ExternalLink, Calendar, Download } from "lucide-react";
 import { getComplianceRisk } from "@/lib/compliance";
 import { useState } from "react";
 
@@ -142,22 +142,50 @@ export default function ScanHistory({ scans, showFilter = false }: ScanHistoryPr
               </div>
 
               {/* Right */}
-              <div className="text-right">
-                <div className="text-3xl font-semibold">
-                  {scan.score ?? "—"}
+              <div className="flex flex-col items-end gap-2 text-right">
+                <div>
+                  <div className="text-3xl font-semibold">
+                    {scan.score ?? "—"}
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Score
+                  </div>
                 </div>
-                <div className="text-xs text-neutral-500">
-                  Score
+                <div className="flex gap-1 text-[11px]">
+                  <a
+                    href={`/api/reports/export?reports=1&audit=1&scanId=${encodeURIComponent(
+                      scan.id
+                    )}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                  >
+                    <Download className="h-3 w-3" />
+                    <span>CSV</span>
+                  </a>
+                  <a
+                    href={`/api/reports/export-html?scanId=${encodeURIComponent(
+                      scan.id
+                    )}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                    title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
+                  >
+                    <Download className="h-3 w-3" />
+                    <span>HTML</span>
+                  </a>
                 </div>
               </div>
             </div>
 
-            <Link
-              href={`/scan/results?scanId=${scan.id}`}
-              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
-            >
-              View details →
-            </Link>
+            <div className="mt-4 flex items-center justify-between text-xs">
+              <Link
+                href={`/scan/results?scanId=${scan.id}`}
+                className="text-sm font-medium text-blue-400 hover:underline"
+              >
+                View details →
+              </Link>
+              <span className="text-[11px] text-neutral-500">
+                Quick exports: per-scan CSV / HTML
+              </span>
+            </div>
           </div>
         );
       })}

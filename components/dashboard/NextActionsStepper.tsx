@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Plan } from "@/lib/plans";
+import { UpgradeButton } from "@/components/common/UpgradeButton";
 
 export function NextActionsStepper({
   issues,
@@ -17,6 +18,7 @@ export function NextActionsStepper({
   const currentIssue = issues[currentIndex];
   const remaining = issues.slice(currentIndex + 1);
   const isLast = currentIndex === issues.length - 1;
+  const isAgency = plan === "agency";
 
   return (
     <div className="space-y-3 text-[11px]">
@@ -28,6 +30,29 @@ export function NextActionsStepper({
           Start with this:
         </p>
         <p className="mt-1 text-emerald-100/90">{currentIssue}</p>
+
+        {isAgency && (
+          <div className="mt-3 space-y-1.5 text-[10px] text-emerald-100/90">
+            <p className="font-semibold text-emerald-200">
+              Why this matters
+            </p>
+            <p>
+              This item has been pulled to the top because it has the
+              biggest impact on your overall compliance score and user
+              experience. Fixing it usually improves multiple pages at
+              once, not just a single URL.
+            </p>
+            <p className="pt-1 font-semibold text-emerald-200">
+              How to brief your team
+            </p>
+            <p>
+              Turn this into a ticket that links back to the scan
+              results. Ask your developers to fix it in your shared
+              components or design system so the improvement rolls out
+              across all affected templates.
+            </p>
+          </div>
+        )}
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <button
@@ -68,6 +93,36 @@ export function NextActionsStepper({
       {(plan === "free" || plan === "starter") && (
         <p className="mt-1 text-[10px] text-amber-400">
           Upgrade to Business to turn these into monitored issues with continuous rescans and change alerts.
+        </p>
+      )}
+
+      {plan === "business" && (
+        <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-neutral-400">
+          <p>
+            On Business you get prioritized steps for this site. Agency quietly
+            adds client-ready guidance, unlimited workspaces, and shared
+            reporting for all of your brands.
+          </p>
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                // lightweight CTA: scroll user to pricing / upgrade section
+                window.location.href = "/pricing#agency";
+              }}
+              className="inline-flex items-center rounded-full border border-emerald-500/60 bg-emerald-900/40 px-3 py-1 text-[10px] font-semibold text-emerald-200 hover:border-emerald-400 hover:bg-emerald-800/60"
+            >
+              View agency upgrade
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isAgency && (
+        <p className="mt-1 text-[10px] text-emerald-300/90">
+          As an Agency customer, these recommendations are written for
+          teams you collaborate with. Share them in your own runbooks,
+          tickets, or client reports.
         </p>
       )}
     </div>
