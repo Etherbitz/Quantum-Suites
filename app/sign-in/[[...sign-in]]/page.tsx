@@ -33,7 +33,7 @@ export default function SignInPage() {
         <div className="w-full max-w-xl space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Scan paused · 1 step to continue</span>
+            <span>Secure workspace sign-in</span>
           </div>
 
           <div className="space-y-3">
@@ -43,9 +43,9 @@ export default function SignInPage() {
               </span>
             </h1>
             <p className="max-w-md text-sm text-neutral-300 sm:text-base">
-              You've started a scan. To view detailed issues, scores, and
-              recommended fixes, create a secure account or sign in to your
-              existing workspace.
+              Create a secure workspace for your scans so you can run
+              detailed compliance checks, save history, and unlock
+              monitoring and alerts as you grow.
             </p>
           </div>
 
