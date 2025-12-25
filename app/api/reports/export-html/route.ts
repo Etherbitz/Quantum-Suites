@@ -181,7 +181,7 @@ export async function GET(req: Request) {
     };
 
     const scanRowsHtml = scans
-      .map((scan) => {
+      .map((scan, index) => {
         const risk = getComplianceRisk(scan.score);
         const summary = (scan.summary ?? {}) as {
           riskLevel?: string;
@@ -210,6 +210,36 @@ export async function GET(req: Request) {
             ? risk.level.replace(/^./, (c) => c.toUpperCase())
             : "";
 
+        const previousForWebsite = scans
+          .slice(index + 1)
+          .find((s) => s.website?.url === scan.website?.url);
+
+        let scanNotes = "Baseline scan for this website.";
+
+        if (
+          previousForWebsite &&
+          typeof scan.score === "number" &&
+          typeof previousForWebsite.score === "number"
+        ) {
+          const delta = scan.score - previousForWebsite.score;
+
+          if (delta > 0) {
+            scanNotes = `Improved by +${delta} points since the previous scan on ${formatDate(
+              previousForWebsite.createdAt
+            )}.`;
+          } else if (delta < 0) {
+            scanNotes = `Dropped by ${Math.abs(
+              delta
+            )} points since the previous scan on ${formatDate(
+              previousForWebsite.createdAt
+            )}.`;
+          } else {
+            scanNotes = `Score unchanged since the previous scan on ${formatDate(
+              previousForWebsite.createdAt
+            )}.`;
+          }
+        }
+
         return `
           <tr>
             <td>Scan</td>
@@ -221,6 +251,7 @@ export async function GET(req: Request) {
             <td>${escapeHtml(riskLevel)}</td>
             <td>${escapeHtml(prettyType)}</td>
             <td>${escapeHtml(automationEnabled)}</td>
+            <td>${escapeHtml(scanNotes)}</td>
             <td>
               ${
                 topIssues.length
@@ -330,13 +361,14 @@ export async function GET(req: Request) {
     <meta charset="utf-8" />
     <title>Quantum Suites AI – Compliance report</title>
     <style>
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 32px; color: #0b1120; background: #020617; }
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 32px; color: #e5e7eb; background: #020617; }
       h1 { font-size: 26px; margin-bottom: 4px; }
       h2 { font-size: 18px; margin-top: 24px; margin-bottom: 8px; }
       p { font-size: 13px; margin: 2px 0; }
       table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 12px; }
       thead { background: #020617; color: #e5e7eb; }
       th, td { border: 1px solid #1f2937; padding: 6px 8px; vertical-align: top; }
+      tbody td { color: #e5e7eb; }
       th { text-align: left; font-weight: 600; }
       ul { margin: 0; padding-left: 18px; }
       .muted { color: #9ca3af; }
@@ -398,12 +430,13 @@ export async function GET(req: Request) {
           <th>Risk level</th>
           <th>Scan type</th>
           <th>Automation</th>
+          <th>Scan notes</th>
           <th>Top issues</th>
           <th>Scan created at</th>
         </tr>
       </thead>
       <tbody>
-        ${scanRowsHtml || `<tr><td colspan="11" class="muted">No scans found.</td></tr>`}
+        ${scanRowsHtml || `<tr><td colspan="12" class="muted">No scans found.</td></tr>`}
       </tbody>
       </table>
     </div>
