@@ -1,8 +1,9 @@
-import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteLogo } from "@/components/common/SiteLogo";
 import { HeaderAuth } from "@/components/common/HeaderAuth";
+import { HeaderNav } from "@/components/common/HeaderNav";
 import { CookieBanner } from "@/components/common/CookieBanner";
 import "./globals.css";
 
@@ -45,55 +46,7 @@ export default function RootLayout({
           <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
               <SiteLogo />
-
-              <nav className="hidden items-center gap-6 text-xs text-neutral-400 sm:text-sm md:flex">
-                <SignedOut>
-                  <Link
-                    href="/#how-it-works"
-                    className="hover:text-white"
-                  >
-                    How it works
-                  </Link>
-                  <Link
-                    href="/#pricing"
-                    className="hover:text-white"
-                  >
-                    Pricing
-                  </Link>
-                  <Link
-                    href="/scan"
-                    className="hover:text-white"
-                  >
-                    Run a scan
-                  </Link>
-                </SignedOut>
-                <SignedIn>
-                  <Link
-                    href="/dashboard"
-                    className="hover:text-white"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/scan"
-                    className="hover:text-white"
-                  >
-                    New scan
-                  </Link>
-                  <Link
-                    href="/dashboard/alerts"
-                    className="hover:text-white"
-                  >
-                    Alerts
-                  </Link>
-                  <Link
-                    href="/dashboard/reports"
-                    className="hover:text-white"
-                  >
-                    Reports
-                  </Link>
-                </SignedIn>
-              </nav>
+              <HeaderNav />
 
               <HeaderAuth />
             </div>

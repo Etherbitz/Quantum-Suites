@@ -3,10 +3,7 @@ import Link from "next/link";
 
 import { prisma } from "@/lib/db";
 import { PLANS, type Plan } from "@/lib/plans";
-import { hasFeature } from "@/lib/featureAccess";
 import { UsageMeter } from "@/components/common/UsageMeter";
-import { UpgradeCTA } from "@/components/common/UpgradeCTA";
-import { WebsitesList } from "@/components/dashboard/WebsitesList";
 import { DangerZone } from "@/components/dashboard/DangerZone";
 import { ProfileForm } from "@/components/dashboard/ProfileForm";
 
@@ -176,83 +173,6 @@ export default async function SettingsPage() {
               </span>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-950 px-5 py-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
-              Monitored websites
-            </h2>
-            <p className="mt-1 text-xs text-neutral-400">
-              These domains are currently being tracked for compliance.
-            </p>
-          </div>
-          <Link
-            href="/scan"
-            className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm shadow-blue-500/40 transition hover:bg-blue-500 hover:shadow-blue-400/60"
-          >
-            Add website
-          </Link>
-        </div>
-
-        <WebsitesList
-          websites={user.websites.map((site) => ({
-            id: site.id,
-            url: site.url,
-            nextScanAt: site.nextScanAt ? site.nextScanAt.toISOString() : null,
-          }))}
-        />
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-neutral-800 bg-neutral-950 px-5 py-5">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
-            Notifications
-          </h2>
-          <p className="text-xs text-neutral-400">
-            Email alerts keep you informed about important changes to your
-            compliance posture.
-          </p>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-medium text-neutral-100">Change alerts</p>
-                <p className="text-xs text-neutral-400">
-                  Immediate alerts when your score drops or new risks appear.
-                </p>
-              </div>
-              {hasFeature(planKey, "changeAlerts") ? (
-                <span className="mt-1 inline-flex rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
-                  Included in your plan
-                </span>
-              ) : (
-                <div className="w-40 text-right">
-                  <UpgradeCTA reason="Enable change alerts with a higher plan." />
-                </div>
-              )}
-            </li>
-          </ul>
-        </div>
-
-        <div className="space-y-3 rounded-2xl border border-neutral-800 bg-neutral-950 px-5 py-5">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
-            Continuous monitoring
-          </h2>
-          <p className="text-xs text-neutral-400">
-            Automatically rescan your sites on a schedule so you don&apos;t
-            have to remember.
-          </p>
-
-          {hasFeature(planKey, "continuousMonitoring") ? (
-            <p className="text-sm text-neutral-200">
-              Continuous monitoring is enabled for your plan. We&apos;ll
-              automatically queue scans according to your schedule.
-            </p>
-          ) : (
-            <UpgradeCTA reason="Upgrade to enable continuous monitoring." />
-          )}
         </div>
       </section>
 
