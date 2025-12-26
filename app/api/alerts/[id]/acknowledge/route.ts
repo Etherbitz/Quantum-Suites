@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { acknowledgeAlert } from "@/services/alertService";
 
 export async function POST(
   _request: NextRequest,
@@ -7,10 +7,7 @@ export async function POST(
 ) {
   const { id } = await context.params;
 
-  await prisma.complianceAlert.update({
-    where: { id },
-    data: { acknowledged: true },
-  });
+  await acknowledgeAlert(id);
 
   return NextResponse.json({ success: true });
 }

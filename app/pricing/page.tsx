@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PricingCard } from "@/components/common/PricingCard";
+import { PricingCard } from "@/components/features/pricing";
 import { UpgradeButton } from "@/components/common/UpgradeButton";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";

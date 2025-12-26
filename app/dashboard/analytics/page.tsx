@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { FUNNEL_STAGES } from "@/lib/analytics/funnel";
 import { getFunnelStats } from "@/lib/analytics/getFunnelStats";
 import { FunnelRow } from "@/components/common/FunnelRow";
-import { MetricCard } from "@/components/dashboard";
+import { MetricCard } from "@/components/features/dashboard";
 
 /**
  * Conversion analytics dashboard.

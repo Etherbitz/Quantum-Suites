@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { UsageMeter } from "@/components/common/UsageMeter";
-import { ResultsSummary } from "@/components/results/ResultsSummary";
-import { ResultsGrid } from "@/components/results/ResultsGrid";
+import { ResultsSummary } from "@/components/features/scan/ResultsSummary";
+import { ResultsGrid } from "@/components/features/scan/ResultsGrid";
 import { LockedSection } from "@/components/LockedSection";
 import { ResultsSuggestions } from "@/components/results/ResultsSuggestions";
 import { UpgradeCTA } from "@/components/common/UpgradeCTA";

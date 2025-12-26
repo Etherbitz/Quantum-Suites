@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { runScanJob } from "@/lib/scanner/runScanJob";
+import { queueScanJob } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -106,17 +106,12 @@ export async function POST(req: Request) {
       },
     });
 
-    const job = await prisma.scanJob.create({
-      data: {
-        userId: anonUser.id,
-        websiteId: website.id,
-        type: "anonymous",
-        status: "QUEUED",
-      },
+    const job = await queueScanJob({
+      userId: anonUser.id,
+      websiteId: website.id,
+      type: "anonymous",
+      autoStart: true,
     });
-
-    // Fire-and-forget anonymous scan
-    runScanJob(job.id);
 
     return NextResponse.json({ scanId: job.id });
   } catch (error) {

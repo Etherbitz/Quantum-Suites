@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { PLANS, type Plan } from "@/lib/plans";
-import { MetricCard } from "@/components/dashboard";
+import { MetricCard } from "@/components/features/dashboard";
 import { AdminScanActions } from "@/components/admin";
 
 interface AdminReportsPageProps {

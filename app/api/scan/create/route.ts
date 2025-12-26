@@ -4,9 +4,9 @@ import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { PLANS } from "@/lib/plans";
 import { canScanNow } from "@/lib/planGuards";
 import { NextResponse } from "next/server";
-import { runScanJob } from "@/lib/scanner/runScanJob";
 import { PLAN_SCAN_INTERVALS } from "@/lib/scanner/scanIntervals";
 import { computeNextScanAt } from "@/lib/scanner/nextScan";
+import { queueScanJob } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -119,13 +119,11 @@ export async function POST(req: Request) {
     // -----------------------------
     // CREATE SCAN JOB (OWNED)
     // -----------------------------
-    const scanJob = await prisma.scanJob.create({
-      data: {
-        userId: user.id,
-        websiteId: website.id,
-        type: "manual",
-        status: "QUEUED",
-      },
+    const scanJob = await queueScanJob({
+      userId: user.id,
+      websiteId: website.id,
+      type: "manual",
+      autoStart: true,
     });
 
     // -----------------------------
@@ -156,11 +154,6 @@ export async function POST(req: Request) {
         },
       });
     }
-
-    // -----------------------------
-    // START SCAN (ASYNC)
-    // -----------------------------
-    runScanJob(scanJob.id);
 
     return NextResponse.json({
       scanId: scanJob.id,

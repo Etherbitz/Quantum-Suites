@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
-import { Sidebar } from "@/components/dashboard";
+import { Sidebar } from "@/components/features/dashboard";
 import { AlertBell } from "@/components/alerts/AlertBell";
 
 /**

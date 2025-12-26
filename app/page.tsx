@@ -3,8 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { PrimaryButton } from "@/components/common/PrimaryButton";
-import { SecondaryButton } from "@/components/common/SecondaryButton";  
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { SecondaryButton } from "@/components/ui/SecondaryButton";  
 import { UpgradeButton } from "@/components/common/UpgradeButton";   
 
 /**
@@ -64,8 +64,14 @@ function HeroSection() {
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-neutral-300">
-            Know where you stand. Reduce legal exposure. Stay compliant
-            automatically — without legal or technical complexity.
+            Know exactly where you stand today. Reduce legal exposure from
+            accessibility and privacy complaints  without needing to become a
+            legal or technical expert.
+          </p>
+
+          <p className="mt-4 text-sm font-medium text-neutral-300">
+            Built for solo founders, agencies, and inhouse marketers who can&apos;t
+            afford surprise compliance issues.
           </p>
 
           {/* CTAs */}
@@ -135,6 +141,17 @@ function HeroSection() {
             Lighthouse Digital
           </span>
         </div>
+      </div>
+
+      {/* Hero pull quote for extra trust */}
+      <div className="relative mx-auto mt-8 max-w-3xl text-center text-xs text-neutral-400 md:text-sm">
+        <p className="italic text-neutral-300">
+          &quot;The weekly monitoring emails are like a smoke alarm for compliance risk.
+          Simple and actionable.&quot;
+        </p>
+        <p className="mt-1 text-[11px] text-neutral-500">
+          Chris L., Head of Marketing
+        </p>
       </div>
     </section>
   );

@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { listRecentAlertsForUser } from "@/services/alertService";
 
 export async function GET() {
   const { userId } = await auth();
@@ -8,11 +8,7 @@ export async function GET() {
     return NextResponse.json({ alerts: [] });
   }
 
-  const alerts = await prisma.complianceAlert.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
+  const alerts = await listRecentAlertsForUser(userId);
 
   return NextResponse.json({ alerts });
 }

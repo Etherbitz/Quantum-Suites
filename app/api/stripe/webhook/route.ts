@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { prisma } from "@/lib/db";
+import { updateUserPlanFromMetadata } from "@/services/billingService";
 
 export async function POST(req: Request) {
   try {
@@ -73,40 +73,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
   const planName = session.metadata?.planName;
 
-  if (!userId || !planName) {
-    console.error("Missing metadata in checkout session");
-    return;
-  }
-
-  // Update user's plan
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      plan: planName.toLowerCase(),
-    },
+  await updateUserPlanFromMetadata({
+    userId,
+    planName,
+    status: session.status ?? null,
   });
 
-  console.log(`User ${userId} upgraded to ${planName}`);
+  console.log("Checkout completed processed for user", userId, planName);
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.userId;
   const planName = subscription.metadata?.planName;
 
-  if (!userId || !planName) {
-    console.error("Missing metadata in subscription");
-    return;
-  }
-
-  // Update user's plan based on subscription status
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      plan: subscription.status === "active" ? planName.toLowerCase() : "free",
-    },
+  await updateUserPlanFromMetadata({
+    userId,
+    planName,
+    status: subscription.status,
   });
 
-  console.log(`Subscription updated for user ${userId}: ${subscription.status}`);
+  console.log(
+    `Subscription updated for user ${userId}: ${subscription.status}`
+  );
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -117,13 +105,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return;
   }
 
-  // Downgrade user to free plan
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      plan: "free",
-    },
+  await updateUserPlanFromMetadata({
+    userId,
+    planName: "free",
+    status: "canceled",
   });
 
-  console.log(`Subscription cancelled for user ${userId}, downgraded to free`);
+  console.log(
+    `Subscription cancelled for user ${userId}, downgraded to free`
+  );
 }

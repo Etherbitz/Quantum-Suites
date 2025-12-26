@@ -1,9 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { ScanHistory, ReportsExportDropdown } from "@/components/dashboard";
+import { ScanHistory, ReportsExportDropdown } from "@/components/features/dashboard";
 import { PLANS, type Plan } from "@/lib/plans";
-import { MetricCard } from "@/components/dashboard";
+import { MetricCard } from "@/components/features/dashboard";
 
 interface ReportsPageProps {
   searchParams?: {
