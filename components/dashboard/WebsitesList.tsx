@@ -34,7 +34,7 @@ function getScorePillClasses(score: number): string {
 export function WebsitesList(
   {
     websites,
-    variant = "light",
+    variant = "dark",
     showExports = false,
   }: WebsitesListProps & { showExports?: boolean }
 ) {

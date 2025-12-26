@@ -1,4 +1,5 @@
 import { FunnelStage } from "./funnel";
+import { prisma } from "@/lib/db";
 
 /**
  * Funnel statistics response.
@@ -14,12 +15,54 @@ export interface FunnelStats {
  * Currently mocked.
  */
 export async function getFunnelStats(): Promise<FunnelStats[]> {
-  // MOCK DATA — replace later
-  return [
-    { stage: "cta_click", count: 1240 },
-    { stage: "scan_submit", count: 610 },
-    { stage: "pricing_plan_selected", count: 220 },
-    { stage: "account_created", count: 90 },
-    { stage: "subscription_started", count: 34 },
+  const [
+    scanJobCount,
+    websiteCount,
+    totalUsers,
+    paidUsers,
+  ] = await Promise.all([
+    // Only include scan jobs from non-admin users
+    prisma.scanJob.count({
+      where: {
+        user: {
+          role: "USER",
+          clerkId: { not: "public-anonymous" },
+        },
+      },
+    }),
+    // Only include websites owned by non-admin users
+    prisma.website.count({
+      where: {
+        user: {
+          role: "USER",
+          clerkId: { not: "public-anonymous" },
+        },
+      },
+    }),
+    // Only real, non-admin users
+    prisma.user.count({
+      where: {
+        role: "USER",
+        clerkId: { not: "public-anonymous" },
+      },
+    }),
+    // Paying, non-admin users
+    prisma.user.count({
+      where: {
+        role: "USER",
+        clerkId: { not: "public-anonymous" },
+        plan: { not: "free" },
+      },
+    }),
+  ]);
+
+  const stats: FunnelStats[] = [
+    { stage: "cta_click", count: scanJobCount },
+    { stage: "scan_submit", count: websiteCount },
+    { stage: "pricing_plan_selected", count: totalUsers },
+    { stage: "account_created", count: totalUsers },
+    { stage: "subscription_started", count: paidUsers },
   ];
+
+  return stats;
 }

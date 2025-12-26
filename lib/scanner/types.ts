@@ -27,6 +27,9 @@ export interface ScanIssue {
   fix?: string;
   element?: string; // CSS selector or element description
   url?: string; // Documentation URL
+  /** Optional HTML snippet and approximate line number for "Review code" views. */
+  snippetHtml?: string;
+  snippetLine?: number;
 }
 
 export interface ScanResult {

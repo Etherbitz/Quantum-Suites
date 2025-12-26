@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { ScanHistory } from "@/components/dashboard";
+import { ScanHistory, ReportsExportDropdown } from "@/components/dashboard";
 import { PLANS, type Plan } from "@/lib/plans";
 import { MetricCard } from "@/components/dashboard";
 
@@ -26,7 +26,7 @@ export default async function ReportsPage({
     where: { clerkId: userId },
   });
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user) {
     redirect("/dashboard");
   }
 
@@ -158,67 +158,11 @@ export default async function ReportsPage({
                 </a>
               )}
             </form>
-            <div className="flex flex-wrap items-center gap-2">
-              <form
-                method="GET"
-                action="/api/reports/export"
-                className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-neutral-300"
-              >
-                <div className="flex items-center gap-3">
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      name="reports"
-                      value="1"
-                      defaultChecked
-                      className="h-3 w-3 rounded border-neutral-700 bg-neutral-950 text-blue-500"
-                    />
-                    <span>Reports</span>
-                  </label>
-                  <label className="inline-flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      name="audit"
-                      value="1"
-                      className="h-3 w-3 rounded border-neutral-700 bg-neutral-950 text-blue-500"
-                    />
-                    <span>Audit trail</span>
-                  </label>
-                </div>
-                <input
-                  type="hidden"
-                  name="from"
-                  value={fromParam}
-                />
-                <input
-                  type="hidden"
-                  name="to"
-                  value={toParam}
-                />
-                <input
-                  type="hidden"
-                  name="website"
-                  value={websiteFilter}
-                />
-                <button
-                  type="submit"
-                  className="inline-flex items-center rounded-md bg-neutral-100 px-3 py-1.5 font-medium text-neutral-900 hover:bg-white"
-                >
-                  Download CSV
-                </button>
-              </form>
-              <a
-                href={`/api/reports/export-html?${new URLSearchParams({
-                  ...(fromParam ? { from: fromParam } : {}),
-                  ...(toParam ? { to: toParam } : {}),
-                  ...(websiteFilter ? { website: websiteFilter } : {}),
-                }).toString()}`}
-                className="inline-flex items-center rounded-md border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
-                title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
-              >
-                Download HTML report
-              </a>
-            </div>
+            <ReportsExportDropdown
+              from={fromParam}
+              to={toParam}
+              website={websiteFilter}
+            />
           </div>
         )}
       </div>

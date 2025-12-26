@@ -19,10 +19,10 @@ These are code or feature tasks that are either stubbed, mocked, or clearly mark
 
 ### Admin Analytics Data
 
-- [ ] Replace mocked funnel stats with real data sources.
-  - Location: `lib/analytics/getFunnelStats.ts` (currently returns hardcoded MOCK DATA).
+- [x] Replace mocked funnel stats with real data sources.
+  - Location: `lib/analytics/getFunnelStats.ts` now derives live counts from Prisma (users, websites, and scan jobs) and excludes admin and anonymous records.
   - Used by: `app/dashboard/analytics/page.tsx` (admin-only analytics dashboard).
-  - Decide source of truth (Stripe, Prisma events, or a dedicated tracking table).
+  - Future: optionally refine stage definitions or plug into a dedicated tracking table.
 
 ### Debug / Internal Endpoints
 

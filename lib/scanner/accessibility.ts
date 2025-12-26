@@ -12,23 +12,38 @@ export class AccessibilityScanner {
 
   async scan(pageContent: PageContent): Promise<ScanIssue[]> {
     const issues: ScanIssue[] = [];
-    const parsed = this.analyzer.parseDOM(pageContent.html);
+    const html = pageContent.html;
+    const parsed = this.analyzer.parseDOM(html);
 
-    issues.push(...this.checkImageAltText(parsed.images));
-    issues.push(...this.checkDocumentLanguage(parsed));
+    issues.push(...this.checkImageAltText(parsed.images, html));
+    issues.push(...this.checkDocumentLanguage(parsed, html));
     issues.push(...this.checkHeadingStructure(parsed.headings));
-    issues.push(...this.checkFormLabels(parsed.forms));
-    issues.push(...this.checkPageTitle(parsed.title));
-    issues.push(...this.checkLinks(parsed.links));
+    issues.push(...this.checkFormLabels(parsed.forms, html));
+    issues.push(...this.checkPageTitle(parsed.title, html));
+    issues.push(...this.checkLinks(parsed.links, html));
 
     return issues;
   }
 
-  private checkImageAltText(images: Array<{ alt?: string; src: string }>): ScanIssue[] {
+  private checkImageAltText(
+    images: Array<{ alt?: string; src: string }>,
+    html: string
+  ): ScanIssue[] {
     const issues: ScanIssue[] = [];
     const missingAlt = images.filter((img) => img.alt === undefined);
 
     if (missingAlt.length > 0) {
+      const first = missingAlt[0];
+      const snippetInfo = first.src
+        ? findSnippet(
+            html,
+            new RegExp(
+              `src=["']${escapeForRegex(first.src)}["']`,
+              "i"
+            )
+          )
+        : findSnippet(html, /<img[^>]*>/i);
+
       issues.push({
         id: "wcag-1.1.1-alt-text",
         category: "Accessibility",
@@ -42,16 +57,23 @@ export class AccessibilityScanner {
         regulationVersion: "2.2",
         fix: "Add descriptive alt attributes to all images. Use alt='' for decorative images.",
         url: "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html",
+        snippetHtml: snippetInfo?.snippetHtml,
+        snippetLine: snippetInfo?.snippetLine,
       });
     }
 
     return issues;
   }
 
-  private checkDocumentLanguage(parsed: { hasLang: boolean; lang?: string }): ScanIssue[] {
+  private checkDocumentLanguage(
+    parsed: { hasLang: boolean; lang?: string },
+    html: string
+  ): ScanIssue[] {
     const issues: ScanIssue[] = [];
 
     if (!parsed.hasLang) {
+      const snippetInfo = findSnippet(html, "<html");
+
       issues.push({
         id: "wcag-3.1.1-lang-attribute",
         category: "Accessibility",
@@ -64,6 +86,8 @@ export class AccessibilityScanner {
         regulationVersion: "2.2",
         fix: 'Add lang attribute to <html> tag: <html lang="en">',
         url: "https://www.w3.org/WAI/WCAG22/Understanding/language-of-page.html",
+        snippetHtml: snippetInfo?.snippetHtml,
+        snippetLine: snippetInfo?.snippetLine,
       });
     }
 
@@ -129,11 +153,18 @@ export class AccessibilityScanner {
     return issues;
   }
 
-  private checkFormLabels(forms: Array<{ inputs: number; hasLabels: boolean }>): ScanIssue[] {
+  private checkFormLabels(
+    forms: Array<{ inputs: number; hasLabels: boolean }>,
+    html: string
+  ): ScanIssue[] {
     const issues: ScanIssue[] = [];
 
     const formsWithoutLabels = forms.filter((f) => !f.hasLabels);
     if (formsWithoutLabels.length > 0) {
+      // We don't currently track individual form HTML, so show
+      // the first <form> tag in the document as an approximate location.
+      const snippetInfo = findSnippet(html, /<form[^>]*>/i);
+
       issues.push({
         id: "wcag-1.3.1-form-labels",
         category: "Accessibility",
@@ -146,16 +177,20 @@ export class AccessibilityScanner {
         regulationVersion: "2.2",
         fix: 'Use <label for="inputId"> or wrap inputs with <label> elements.',
         url: "https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html",
+        snippetHtml: snippetInfo?.snippetHtml,
+        snippetLine: snippetInfo?.snippetLine,
       });
     }
 
     return issues;
   }
 
-  private checkPageTitle(title?: string): ScanIssue[] {
+  private checkPageTitle(title: string | undefined, html: string): ScanIssue[] {
     const issues: ScanIssue[] = [];
 
     if (!title || title.trim().length === 0) {
+      const snippetInfo = findSnippet(html, "<title");
+
       issues.push({
         id: "wcag-2.4.2-page-title",
         category: "Accessibility",
@@ -169,18 +204,35 @@ export class AccessibilityScanner {
         regulationVersion: "2.2",
         fix: "Add a descriptive <title> element in the <head> section.",
         url: "https://www.w3.org/WAI/WCAG22/Understanding/page-titled.html",
+        snippetHtml: snippetInfo?.snippetHtml,
+        snippetLine: snippetInfo?.snippetLine,
       });
     }
 
     return issues;
   }
 
-  private checkLinks(links: Array<{ href: string; text: string }>): ScanIssue[] {
+  private checkLinks(
+    links: Array<{ href: string; text: string }>,
+    html: string
+  ): ScanIssue[] {
     const issues: ScanIssue[] = [];
 
     const emptyLinks = links.filter((link) => !link.text || link.text.trim().length === 0);
 
     if (emptyLinks.length > 0) {
+      const first = emptyLinks[0];
+      const href = first.href;
+      const snippetInfo = href
+        ? findSnippet(
+            html,
+            new RegExp(
+              `href=["']${escapeForRegex(href)}["']`,
+              "i"
+            )
+          )
+        : findSnippet(html, /<a[^>]*>/i);
+
       issues.push({
         id: "wcag-2.4.4-link-purpose",
         category: "Accessibility",
@@ -194,9 +246,43 @@ export class AccessibilityScanner {
         regulationVersion: "2.2",
         fix: "Add descriptive text to links or use aria-label for icon-only links.",
         url: "https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html",
+        snippetHtml: snippetInfo?.snippetHtml,
+        snippetLine: snippetInfo?.snippetLine,
       });
     }
 
     return issues;
   }
+}
+
+function escapeForRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function findSnippet(
+  html: string,
+  needle: string | RegExp
+): { snippetHtml: string; snippetLine: number } | null {
+  const source = html ?? "";
+  if (!source) return null;
+
+  const index =
+    typeof needle === "string" ? source.indexOf(needle) : source.search(needle);
+
+  if (index === -1) return null;
+
+  const before = source.slice(0, index);
+  const snippetLine = before.split("\n").length;
+
+  const lineStart = before.lastIndexOf("\n") + 1;
+  const lineEnd = source.indexOf("\n", index);
+  const rawLine = source.slice(
+    lineStart,
+    lineEnd === -1 ? Math.min(index + 200, source.length) : lineEnd
+  );
+
+  return {
+    snippetHtml: rawLine.trim(),
+    snippetLine,
+  };
 }

@@ -7,7 +7,7 @@ type AdminPlanToolProps = {
   currentPlan: Plan | string;
 };
 
-const ALLOWED_PLANS: Plan[] = ["starter", "business", "agency"];
+const ALLOWED_PLANS: Plan[] = ["free", "starter", "business", "agency"];
 
 export function AdminPlanTool({ currentPlan }: AdminPlanToolProps) {
   const normalized = (currentPlan || "free").toLowerCase() as Plan | string;

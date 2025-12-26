@@ -108,26 +108,30 @@ export default async function SettingsPage() {
           </div>
 
           <ProfileForm
-          initialProfile={{
-            email: clerkUser.emailAddresses[0]?.emailAddress ?? user.email,
-            firstName: (user as any).firstName ?? clerkUser.firstName ?? "",
-            lastName: (user as any).lastName ?? clerkUser.lastName ?? "",
-            company: (user as any).company ?? "",
-            jobTitle: (user as any).jobTitle ?? "",
-            phone:
-              (user as any).phone ??
-              (clerkUser.phoneNumbers?.[0]?.phoneNumber ?? ""),
-            timezone: (user as any).timezone ?? "",
-            locale: (user as any).locale ?? "",
-            addressLine1: (user as any).addressLine1 ?? "",
-            addressLine2: (user as any).addressLine2 ?? "",
-            city: (user as any).city ?? "",
-            state: (user as any).state ?? "",
-            postalCode: (user as any).postalCode ?? "",
-            country: (user as any).country ?? "",
-            marketingOptIn: Boolean((user as any).marketingOptIn),
-          }}
-        />
+            initialProfile={{
+              email:
+                clerkUser.emailAddresses[0]?.emailAddress ?? user.email,
+              firstName:
+                (user as any).firstName ?? clerkUser.firstName ?? "",
+              lastName:
+                (user as any).lastName ?? clerkUser.lastName ?? "",
+              company: (user as any).company ?? "",
+              jobTitle: (user as any).jobTitle ?? "",
+              phone:
+                (user as any).phone ??
+                (clerkUser.phoneNumbers?.[0]?.phoneNumber ?? ""),
+              timezone: (user as any).timezone ?? "",
+              locale: (user as any).locale ?? "",
+              addressLine1: (user as any).addressLine1 ?? "",
+              addressLine2: (user as any).addressLine2 ?? "",
+              city: (user as any).city ?? "",
+              state: (user as any).state ?? "",
+              postalCode: (user as any).postalCode ?? "",
+              country: (user as any).country ?? "",
+              marketingOptIn: Boolean((user as any).marketingOptIn),
+            }}
+            canEditName={user.role === "ADMIN"}
+          />
         </div>
 
         <div className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-950 px-5 py-5 shadow-sm">

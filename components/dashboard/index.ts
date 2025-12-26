@@ -10,3 +10,4 @@ export * from "./ScheduleCard";
 export { Sidebar } from "./Sidebar";
 export { ComplianceTrendChart } from "./ComplianceTrendChart";
 export { NextActionsStepper } from "./NextActionsStepper";
+export { ReportsExportDropdown } from "./ReportsExportDropdown";

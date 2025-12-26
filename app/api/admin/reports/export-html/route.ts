@@ -19,16 +19,22 @@ export async function GET(req: Request) {
       );
     }
 
-    const user = await getOrCreateUser(
+    const adminUser = await getOrCreateUser(
       userId,
       clerkUser.emailAddresses[0].emailAddress
     );
 
-    const rawPlan = typeof user.plan === "string" ? user.plan.toLowerCase() : "free";
+    if (adminUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "FORBIDDEN", reason: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const rawPlan =
+      typeof adminUser.plan === "string" ? adminUser.plan.toLowerCase() : "free";
     const planKey: Plan =
-      rawPlan === "starter" ||
-      rawPlan === "business" ||
-      rawPlan === "agency"
+      rawPlan === "starter" || rawPlan === "business" || rawPlan === "agency"
         ? (rawPlan as Plan)
         : "free";
 
@@ -39,6 +45,7 @@ export async function GET(req: Request) {
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
     const websiteFilter = searchParams.get("website");
+    const ownerFilter = searchParams.get("owner");
 
     const createdAtFilter: { gte?: Date; lte?: Date } = {};
     if (fromParam) {
@@ -58,7 +65,6 @@ export async function GET(req: Request) {
 
     const scans = await prisma.scanJob.findMany({
       where: {
-        userId: user.id,
         ...(scanIdFilter
           ? {
               id: scanIdFilter,
@@ -77,6 +83,16 @@ export async function GET(req: Request) {
               },
             }
           : {}),
+        ...(ownerFilter
+          ? {
+              user: {
+                email: {
+                  contains: ownerFilter,
+                  mode: "insensitive",
+                },
+              },
+            }
+          : {}),
       },
       orderBy: { createdAt: "desc" },
       select: {
@@ -86,6 +102,9 @@ export async function GET(req: Request) {
         type: true,
         summary: true,
         createdAt: true,
+        user: {
+          select: { email: true },
+        },
         website: {
           select: { url: true, nextScanAt: true },
         },
@@ -95,7 +114,6 @@ export async function GET(req: Request) {
     const alerts = canAudit
       ? await prisma.complianceAlert.findMany({
           where: {
-            userId: user.id,
             ...(scanIdFilter
               ? {
                   scanJobId: scanIdFilter,
@@ -120,6 +138,16 @@ export async function GET(req: Request) {
                   },
                 }
               : {}),
+            ...(ownerFilter
+              ? {
+                  user: {
+                    email: {
+                      contains: ownerFilter,
+                      mode: "insensitive",
+                    },
+                  },
+                }
+              : {}),
           },
           orderBy: { createdAt: "desc" },
           select: {
@@ -130,6 +158,9 @@ export async function GET(req: Request) {
             severity: true,
             acknowledged: true,
             createdAt: true,
+            user: {
+              select: { email: true },
+            },
             scanJob: {
               select: {
                 id: true,
@@ -214,7 +245,7 @@ export async function GET(req: Request) {
           .slice(index + 1)
           .find((s) => s.website?.url === scan.website?.url);
 
-        let scanNotes = "Baseline scan for this website.";
+        let scanNotes = `Baseline scan for ${scan.website?.url ?? "this website"}.`;
 
         if (
           previousForWebsite &&
@@ -245,29 +276,24 @@ export async function GET(req: Request) {
             <td>Scan</td>
             <td>${escapeHtml(scan.id)}</td>
             <td>${escapeHtml(scan.website?.url ?? "")}</td>
+            <td>${escapeHtml(scan.user?.email ?? "")}</td>
             <td>${escapeHtml(prettyStatus)}</td>
-            <td>${scan.score != null ? escapeHtml(`${scan.score}/100`) : "&mdash;"}</td>
+            <td>${
+              scan.score != null
+                ? escapeHtml(`${scan.score}/100`)
+                : "&mdash;"
+            }</td>
             <td>${escapeHtml(risk.label)}</td>
             <td>${escapeHtml(riskLevel)}</td>
             <td>${escapeHtml(prettyType)}</td>
             <td>${escapeHtml(automationEnabled)}</td>
             <td>${escapeHtml(scanNotes)}</td>
-            <td>
-              ${
-                topIssues.length
-                  ? `<ul>${topIssues
-                      .map((issue) => `<li>${escapeHtml(issue)}</li>`)
-                      .join("")}</ul>`
-                  : "&mdash;"
-              }
-            </td>
             <td>${escapeHtml(formatDate(scan.createdAt))}</td>
-          </tr>
-        `;
+          </tr>`;
       })
       .join("");
 
-    const alertRowsHtml = alerts
+    const alertsRowsHtml = alerts
       .map((alert) => {
         const baseScore = alert.currentScore ?? alert.scanJob?.score;
         const risk = getComplianceRisk(baseScore);
@@ -295,21 +321,22 @@ export async function GET(req: Request) {
           ? summary.topIssues
           : [];
 
-        const riskLevel =
-          risk.level && typeof risk.level === "string"
-            ? risk.level.replace(/^./, (c) => c.toUpperCase())
-            : "";
-
         const scoreChange =
           alert.delta != null && alert.delta !== 0
             ? `${alert.delta > 0 ? "+" : ""}${alert.delta}`
             : "0";
+
+        const riskLevel =
+          risk.level && typeof risk.level === "string"
+            ? risk.level.replace(/^./, (c) => c.toUpperCase())
+            : "";
 
         return `
           <tr>
             <td>Alert</td>
             <td>${escapeHtml(alert.scanJob?.id ?? "")}</td>
             <td>${escapeHtml(alert.scanJob?.website?.url ?? "")}</td>
+            <td>${escapeHtml(alert.user?.email ?? "")}</td>
             <td>${escapeHtml(prettyStatus)}</td>
             <td>${
               alert.scanJob?.score != null
@@ -320,162 +347,116 @@ export async function GET(req: Request) {
             <td>${escapeHtml(riskLevel)}</td>
             <td>${escapeHtml(prettyType)}</td>
             <td>${escapeHtml(automationEnabled)}</td>
-            <td>
-              ${
-                topIssues.length
-                  ? `<ul>${topIssues
-                      .map((issue) => `<li>${escapeHtml(issue)}</li>`)
-                      .join("")}</ul>`
-                  : "&mdash;"
-              }
-            </td>
-            <td>${escapeHtml(formatDate(alert.scanJob?.createdAt ?? null))}</td>
-            <td>${
-              alert.previousScore != null
-                ? escapeHtml(`${alert.previousScore}/100`)
-                : "&mdash;"
-            }</td>
-            <td>${
-              alert.currentScore != null
-                ? escapeHtml(`${alert.currentScore}/100`)
-                : "&mdash;"
-            }</td>
             <td>${escapeHtml(scoreChange)}</td>
-            <td>${escapeHtml(
-              alert.severity.replace(/^./, (c) => c.toUpperCase())
-            )}</td>
+            <td>${escapeHtml(alert.severity.replace(/^./, (c) => c.toUpperCase()))}</td>
             <td>${escapeHtml(formatDate(alert.createdAt))}</td>
-            <td>${alert.acknowledged ? "Yes" : "No"}</td>
-          </tr>
-        `;
+            <td>${escapeHtml(alert.acknowledged ? "Yes" : "No")}</td>
+          </tr>`;
       })
       .join("");
-
-    const filename = `compliance-report-${new Date()
-      .toISOString()
-      .slice(0, 10)}.html`;
 
     const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Quantum Suites AI – Compliance report</title>
+    <title>Admin Compliance Report</title>
     <style>
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 32px; color: #e5e7eb; background: #020617; }
-      h1 { font-size: 26px; margin-bottom: 4px; }
-      h2 { font-size: 18px; margin-top: 24px; margin-bottom: 8px; }
-      p { font-size: 13px; margin: 2px 0; }
-      table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 12px; }
-      thead { background: #020617; color: #e5e7eb; }
-      th, td { border: 1px solid #1f2937; padding: 6px 8px; vertical-align: top; }
-      tbody td { color: #e5e7eb; }
-      th { text-align: left; font-weight: 600; }
-      ul { margin: 0; padding-left: 18px; }
-      .muted { color: #9ca3af; }
-      .brand-shell { border-radius: 16px; border: 1px solid #1f2937; background: #020617; padding: 20px 24px; margin-bottom: 20px; }
-      .brand-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: #0f172a; color: #e5e7eb; font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; }
-      .brand-dot { width: 6px; height: 6px; border-radius: 999px; background: #22c55e; }
-      .brand-title { font-size: 22px; font-weight: 600; color: #e5e7eb; margin-top: 8px; }
-      .brand-subtitle { font-size: 13px; color: #9ca3af; margin-top: 2px; }
-      .section-card { border-radius: 16px; border: 1px solid #1f2937; background: #020617; padding: 16px 20px; margin-top: 16px; }
-      .section-heading { font-size: 13px; text-transform: uppercase; letter-spacing: 0.16em; color: #9ca3af; margin-bottom: 6px; }
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #020617; color: #e5e7eb; margin: 0; padding: 24px; }
+      h1, h2, h3 { color: #f9fafb; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+      th, td { border: 1px solid #1f2937; padding: 6px 8px; text-align: left; }
+      th { background: #030712; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; color: #9ca3af; }
+      tbody tr:nth-child(even) { background: #020617; }
+      tbody tr:nth-child(odd) { background: #020617; }
+      .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+      .card { border-radius: 12px; border: 1px solid #1f2937; padding: 12px 14px; background: #020617; }
+      .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #6b7280; }
+      .value { font-size: 20px; font-weight: 600; margin-top: 4px; }
+      .muted { font-size: 11px; color: #9ca3af; }
+      .section { margin-top: 32px; }
     </style>
   </head>
   <body>
-    <div class="brand-shell">
-      <div class="brand-badge">
-        <span class="brand-dot"></span>
-        <span>Quantum Suites AI</span>
+    <header>
+      <h1>Admin compliance report</h1>
+      <p class="muted">Aggregated exports across all workspaces for Quantum Suites AI.</p>
+      <div class="summary-grid">
+        <div class="card">
+          <div class="label">Total scans in export</div>
+          <div class="value">${escapeHtml(totalScans)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Latest score</div>
+          <div class="value">${
+            typeof latestScore === "number"
+              ? escapeHtml(`${latestScore}/100`)
+              : "—"
+          }</div>
+        </div>
+        <div class="card">
+          <div class="label">Risk band</div>
+          <div class="value">${escapeHtml(latestRisk.label)}</div>
+          <p class="muted">${escapeHtml(latestRisk.level ?? "")}</p>
+        </div>
+        <div class="card">
+          <div class="label">Pass / fail heuristic</div>
+          <div class="value">${escapeHtml(passFailLabel || "N/A")}</div>
+        </div>
+        <div class="card">
+          <div class="label">Date range</div>
+          <div class="muted">From ${escapeHtml(formatDate(fromDate))}</div>
+          <div class="muted">To ${escapeHtml(formatDate(toDate))}</div>
+        </div>
       </div>
-      <div class="brand-title">Compliance report</div>
-      <p class="brand-subtitle">Snapshot of your accessibility, privacy, and security posture.</p>
-      <p class="muted">Account: ${escapeHtml(user.email)}</p>
-      <p class="muted">Plan: ${escapeHtml(planKey)}</p>
-      <p class="muted">Scans: ${totalScans} ${
-        fromDate && toDate
-          ? `(from ${escapeHtml(formatDate(fromDate))} to ${escapeHtml(
-              formatDate(toDate)
-            )})`
-          : ""
-      }</p>
-      <p class="muted">
-        ${latestScan
-          ? typeof latestScore === "number"
-            ? escapeHtml(
-                `Latest score: ${latestScore}/100 (${latestRisk.label}$${
-                  passFailLabel ? " – " + passFailLabel : ""
-                }) on ${formatDate(latestScan.createdAt)}`
-              )
-            : escapeHtml(
-                `Latest scan is pending (created at ${formatDate(
-                  latestScan.createdAt
-                )})`
-              )
-          : "No scans yet – run your first scan to populate this report."}
-      </p>
-      <p class="muted">Generated at: ${escapeHtml(formatDate(new Date()))}</p>
-    </div>
+    </header>
 
-    <div class="section-card">
-      <div class="section-heading">Scan history (reports)</div>
+    <section class="section">
+      <h2>Scans</h2>
       <table>
-      <thead>
-        <tr>
-          <th>Row</th>
-          <th>Scan ID</th>
-          <th>Website</th>
-          <th>Status</th>
-          <th>Score</th>
-          <th>Risk label</th>
-          <th>Risk level</th>
-          <th>Scan type</th>
-          <th>Automation</th>
-          <th>Scan notes</th>
-          <th>Top issues</th>
-          <th>Scan created at</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${scanRowsHtml || `<tr><td colspan="12" class="muted">No scans found.</td></tr>`}
-      </tbody>
+        <thead>
+          <tr>
+            <th>Row type</th>
+            <th>Scan ID</th>
+            <th>Website</th>
+            <th>Owner</th>
+            <th>Status</th>
+            <th>Score</th>
+            <th>Risk label</th>
+            <th>Risk level</th>
+            <th>Scan type</th>
+            <th>Automation</th>
+            <th>Notes</th>
+            <th>Created at</th>
+          </tr>
+        </thead>
+        <tbody>${scanRowsHtml}</tbody>
       </table>
-    </div>
+    </section>
 
-    <div class="section-card">
-      <div class="section-heading">Audit trail – score change alerts</div>
-      <p class="muted">This audit trail captures score changes over time for your sites. Full details are only available on Business and Agency plans.</p>
+    <section class="section">
+      <h2>Alerts</h2>
       <table>
-      <thead>
-        <tr>
-          <th>Row</th>
-          <th>Scan ID</th>
-          <th>Website</th>
-          <th>Status</th>
-          <th>Score</th>
-          <th>Risk label</th>
-          <th>Risk level</th>
-          <th>Scan type</th>
-          <th>Automation</th>
-          <th>Top issues</th>
-          <th>Scan created at</th>
-          <th>Previous score</th>
-          <th>Current score</th>
-          <th>Score change</th>
-          <th>Alert severity</th>
-          <th>Alert created at</th>
-          <th>Alert acknowledged</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${
-          canAudit
-            ? alertRowsHtml ||
-              `<tr><td colspan="17" class="muted">No alerts found.</td></tr>`
-            : `<tr><td colspan="17" class="muted">Upgrade to Business or Agency to unlock detailed alert history exports.</td></tr>`
-        }
-      </tbody>
+        <thead>
+          <tr>
+            <th>Row type</th>
+            <th>Scan ID</th>
+            <th>Website</th>
+            <th>Owner</th>
+            <th>Status</th>
+            <th>Score</th>
+            <th>Risk label</th>
+            <th>Risk level</th>
+            <th>Scan type</th>
+            <th>Automation</th>
+            <th>Score change</th>
+            <th>Severity</th>
+            <th>Created at</th>
+            <th>Acknowledged</th>
+          </tr>
+        </thead>
+        <tbody>${alertsRowsHtml}</tbody>
       </table>
-    </div>
+    </section>
   </body>
 </html>`;
 
@@ -483,11 +464,10 @@ export async function GET(req: Request) {
       status: 200,
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {
-    console.error("REPORT_HTML_EXPORT_FAILED", error);
+    console.error("ADMIN_HTML_EXPORT_FAILED", error);
     return NextResponse.json(
       { error: "EXPORT_FAILED" },
       { status: 500 }

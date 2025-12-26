@@ -84,25 +84,35 @@ function HeroSection() {
           </div>
 
           <p className="mt-3 text-sm text-neutral-400">
-            No credit card required • Takes under 60 seconds
+            No payment needed for your first scan • Takes under 60 seconds
           </p>
         </div>
 
         {/* Product Preview: live dashboard screenshot */}
         <div className="hidden items-center justify-center md:flex">
-          <div className="group relative h-[360px] w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/40 bg-neutral-950/80 shadow-2xl shadow-cyan-500/30 transition-transform duration-500 ease-out group-hover:-translate-y-2">
+          <Link
+            href="/scan"
+            className="group relative block h-[360px] w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/40 bg-neutral-950/80 shadow-2xl shadow-cyan-500/30 transition-transform duration-500 ease-out hover:-translate-y-2"
+          >
             <div className="absolute inset-0 bg-linear-to-br from-cyan-500/25 via-transparent to-violet-500/40 opacity-50" />
 
             <div className="relative h-full w-full rounded-2xl border border-neutral-800/70 bg-neutral-950 overflow-hidden">
-                <Image
-                  src="/dashboard/hero.png"
+              <Image
+                src="/dashboard/hero.png"
                 alt="Quantum Suites AI compliance dashboard"
                 fill
                 priority
                 className="object-contain object-center"
               />
             </div>
-          </div>
+
+            <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between rounded-full border border-cyan-500/60 bg-neutral-950/85 px-4 py-2 text-[11px] text-neutral-200 shadow-md shadow-cyan-500/30">
+              <span className="uppercase tracking-[0.16em] text-neutral-400">
+                See inside the dashboard
+              </span>
+              <span className="text-cyan-300">→</span>
+            </div>
+          </Link>
         </div>
       </div>
 
@@ -315,7 +325,11 @@ function PricingSection() {
     >
       <div className="mx-auto max-w-7xl text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-3">Simple, Transparent Pricing</h2>
-        <p className="text-gray-600 text-lg mb-14">Choose the plan that fits your needs</p>
+        <p className="text-gray-600 text-lg mb-3">Choose the plan that fits your needs</p>
+
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 mb-10">
+           Free scan first • Cancel anytime • Privacy-first scanning
+        </p>
 
         <div className="mt-14 grid gap-8 md:grid-cols-3">
           <PricingCard

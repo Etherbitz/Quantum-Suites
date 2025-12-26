@@ -1,5 +1,7 @@
 import { requireAdmin } from "@/lib/adminGuard";
 import { prisma } from "@/lib/db";
+import { ActivityLogBulkActions } from "@/components/admin/ActivityLogBulkActions";
+import { ActivityLogRowActions } from "@/components/admin/ActivityLogRowActions";
 
 export default async function AdminLogsPage({
   searchParams,
@@ -83,8 +85,11 @@ export default async function AdminLogsPage({
           className="mb-3 flex flex-col gap-3 text-xs text-neutral-400 md:flex-row md:items-center md:justify-between"
           method="GET"
         >
-          <div>
-            Showing last {jobs.length} scan jobs.
+          <div className="flex items-center gap-3">
+            <span>
+              Showing last {jobs.length} scan jobs.
+            </span>
+            <ActivityLogBulkActions hasJobs={jobs.length > 0} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <input
@@ -131,6 +136,7 @@ export default async function AdminLogsPage({
                 <th className="px-3 py-2">Website</th>
                 <th className="px-3 py-2">User</th>
                 <th className="px-3 py-2">Job ID</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +162,9 @@ export default async function AdminLogsPage({
                   </td>
                   <td className="px-3 py-2 font-mono text-[11px] text-neutral-500">
                     {job.id}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <ActivityLogRowActions jobId={job.id} />
                   </td>
                 </tr>
               ))}

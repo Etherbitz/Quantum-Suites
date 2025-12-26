@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
 
-const ALLOWED_PLANS = ["starter", "business", "agency"] as const;
+const ALLOWED_PLANS = ["free", "starter", "business", "agency"] as const;
+type AllowedPlan = (typeof ALLOWED_PLANS)[number];
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -28,9 +29,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const { plan } = await req.json();
+  const body = await req.json();
+  const requestedPlan = String(body.plan || "").toLowerCase() as AllowedPlan;
 
-  if (!ALLOWED_PLANS.includes(plan)) {
+  if (!ALLOWED_PLANS.includes(requestedPlan)) {
     return NextResponse.json(
       { error: "INVALID_PLAN" },
       { status: 400 }
@@ -39,8 +41,8 @@ export async function POST(req: Request) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { plan },
+    data: { plan: requestedPlan },
   });
 
-  return NextResponse.json({ success: true, plan });
+  return NextResponse.json({ success: true, plan: requestedPlan });
 }

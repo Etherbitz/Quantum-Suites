@@ -120,6 +120,7 @@ export default async function DashboardPage() {
         await prisma.complianceAlert.create({
           data: {
             userId: user.id,
+            scanJobId: latestScan?.id ?? null,
             previousScore: alert.previousScore,
             currentScore: alert.currentScore,
             delta: alert.delta,
@@ -240,76 +241,12 @@ export default async function DashboardPage() {
         </p>
       )}
 
+      {/* Top row: score + plan summary */}
       <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-        <div className="space-y-4">
-          <ComplianceScore
-            score={currentScore}
-            trend={trend}
-          />
-
-          <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold text-neutral-50">
-                Next recommended actions
-              </h2>
-              <p className="text-[11px] text-neutral-500">
-                Prioritized from your most recent scan
-              </p>
-            </div>
-
-            {totalScans === 0 && (
-              <p className="text-[11px] text-neutral-500">
-                Run your first scan to see exactly where to start hardening
-                your compliance posture.
-              </p>
-            )}
-
-            {totalScans > 0 && topIssues.length === 0 && (
-              <p className="text-[11px] text-neutral-500">
-                No specific issues surfaced in your latest summary. Keep
-                monitoring this score and schedule regular scans to catch
-                regressions before they become incidents.
-              </p>
-            )}
-
-            {topIssues.length > 0 && (
-              plan === "business" || plan === "agency" ? (
-                <NextActionsStepper
-                  issues={topIssues}
-                  plan={plan}
-                />
-              ) : (
-                <p className="mt-2 text-[11px] text-amber-400">
-                  Upgrade to Business or Agency to get guided, step-by-step
-                  recommendations that walk you through fixing these issues.
-                </p>
-              )
-            )}
-          </section>
-
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-neutral-50">
-                Recent scans
-              </h2>
-              <div className="flex flex-col items-end gap-1 text-[11px] text-neutral-500">
-                <p>
-                  Showing your last {currentPeriod.length || 0} scans
-                </p>
-                {latestScan && hasFeature(plan, "detailedReports") && (
-                  <a
-                    href={`/api/reports/export-html?scanId=${latestScan.id}`}
-                    className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-[11px] font-medium text-neutral-200 hover:border-neutral-500 hover:bg-neutral-800"
-                    title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
-                  >
-                    Export latest (HTML/PDF)
-                  </a>
-                )}
-              </div>
-            </div>
-            <ScanHistory scans={currentPeriod} />
-          </section>
-        </div>
+        <ComplianceScore
+          score={currentScore}
+          trend={trend}
+        />
 
         <aside className="space-y-4">
           <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
@@ -376,37 +313,73 @@ export default async function DashboardPage() {
               </div>
             )}
           </section>
-
-          {websites.length > 0 && (
-            <section className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
-              <h2 className="text-sm font-semibold text-neutral-50">
-                Websites
-              </h2>
-              <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1 text-xs">
-                <WebsitesList
-                  variant="dark"
-                  showExports={hasFeature(plan, "detailedReports")}
-                  websites={websites.map((site) => {
-                    const status = websiteStatus.get(site.id);
-                    return {
-                      id: site.id,
-                      url: site.url,
-                      nextScanAt: site.nextScanAt
-                        ? site.nextScanAt.toISOString()
-                        : null,
-                      lastScanAt: status?.lastScanAt
-                        ? status.lastScanAt.toISOString()
-                        : null,
-                      lastScore: status?.lastScore ?? null,
-                      lastScanId: status?.lastScanId ?? null,
-                    };
-                  })}
-                />
-              </div>
-            </section>
-          )}
         </aside>
       </div>
+
+      {/* Full-width next actions spanning both columns above */}
+      <section className="mt-4 rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-neutral-50">
+            Next recommended actions
+          </h2>
+          <p className="text-[11px] text-neutral-500">
+            Prioritized from your most recent scan
+          </p>
+        </div>
+
+        {totalScans === 0 && (
+          <p className="text-[11px] text-neutral-500">
+            Run your first scan to see exactly where to start hardening
+            your compliance posture.
+          </p>
+        )}
+
+        {totalScans > 0 && topIssues.length === 0 && (
+          <p className="text-[11px] text-neutral-500">
+            No specific issues surfaced in your latest summary. Keep
+            monitoring this score and schedule regular scans to catch
+            regressions before they become incidents.
+          </p>
+        )}
+
+        {topIssues.length > 0 && (
+          plan === "business" || plan === "agency" ? (
+            <NextActionsStepper
+              issues={topIssues}
+              plan={plan}
+            />
+          ) : (
+            <p className="mt-2 text-[11px] text-amber-400">
+              Upgrade to Business or Agency to get guided, step-by-step
+              recommendations that walk you through fixing these issues.
+            </p>
+          )
+        )}
+      </section>
+
+      {/* Recent scans below */}
+      <section className="mt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-neutral-50">
+            Recent scans
+          </h2>
+          <div className="flex flex-col items-end gap-1 text-[11px] text-neutral-500">
+            <p>
+              Showing your last {currentPeriod.length || 0} scans
+            </p>
+            {latestScan && hasFeature(plan, "detailedReports") && (
+              <a
+                href={`/api/reports/export-html?scanId=${latestScan.id}`}
+                className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-[11px] font-medium text-neutral-200 hover:border-neutral-500 hover:bg-neutral-800"
+                title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
+              >
+                Export latest (HTML/PDF)
+              </a>
+            )}
+          </div>
+        </div>
+        <ScanHistory scans={currentPeriod} />
+      </section>
 
       {hasFeature(plan, "continuousMonitoring") && websites.length > 0 && (
         <ComplianceTrendChart

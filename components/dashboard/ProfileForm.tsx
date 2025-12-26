@@ -20,9 +20,10 @@ interface ProfileFormProps {
     country: string;
     marketingOptIn: boolean;
   };
+  canEditName: boolean;
 }
 
-export function ProfileForm({ initialProfile }: ProfileFormProps) {
+export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
   const [form, setForm] = useState(initialProfile);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -68,8 +69,11 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           <input
             type="text"
             value={form.firstName}
-            onChange={(e) => updateField("firstName", e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            onChange={(e) =>
+              canEditName && updateField("firstName", e.target.value)
+            }
+            disabled={!canEditName}
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Alex"
           />
         </div>
@@ -78,8 +82,11 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           <input
             type="text"
             value={form.lastName}
-            onChange={(e) => updateField("lastName", e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            onChange={(e) =>
+              canEditName && updateField("lastName", e.target.value)
+            }
+            disabled={!canEditName}
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Rodriguez"
           />
         </div>

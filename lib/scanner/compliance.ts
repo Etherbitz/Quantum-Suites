@@ -46,13 +46,14 @@ export class ComplianceScanner {
 
   scan(pageContent: PageContent): ScanIssue[] {
     const issues: ScanIssue[] = [];
-    const parsed = this.analyzer.parseDOM(pageContent.html);
+    const html = pageContent.html;
+    const parsed = this.analyzer.parseDOM(html);
 
     issues.push(...this.checkHttps(pageContent.url));
     issues.push(...this.checkSecurityHeaders(pageContent.headers));
-    issues.push(...this.checkCookieConsent(pageContent.html));
-    issues.push(...this.checkPrivacyPolicy(parsed.links));
-    issues.push(...this.checkContact(parsed.links));
+    issues.push(...this.checkCookieConsent(html));
+    issues.push(...this.checkPrivacyPolicy(parsed.links, html));
+    issues.push(...this.checkContact(parsed.links, html));
 
     return issues;
   }
@@ -100,6 +101,9 @@ export class ComplianceScanner {
           regulationVersion: "1.0",
           fix: rule.fix,
           url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers",
+          // Use the recommended header line itself as the snippet
+          // so Agency users always see concrete code they can apply.
+          snippetHtml: rule.fix,
         });
       }
     }
@@ -112,6 +116,8 @@ export class ComplianceScanner {
     const hasConsentKeywords = /consent|accept cookies|manage cookies/i.test(html);
 
     if (!hasCookieText || !hasConsentKeywords) {
+      const snippetInfo = findSnippet(html, /cookie/i);
+
       return [
         {
           id: "gdpr-cookie-consent",
@@ -125,6 +131,8 @@ export class ComplianceScanner {
           regulationCode: "GDPR-COOKIE-CONSENT",
           regulationVersion: "2016",
           fix: "Implement a consent banner that blocks non-essential cookies until approved.",
+          snippetHtml: snippetInfo?.snippetHtml,
+          snippetLine: snippetInfo?.snippetLine,
         },
       ];
     }
@@ -133,13 +141,16 @@ export class ComplianceScanner {
   }
 
   private checkPrivacyPolicy(
-    links: Array<{ href: string; text: string }>
+    links: Array<{ href: string; text: string }>,
+    html: string
   ): ScanIssue[] {
     const hasPrivacyLink = links.some((link) =>
       /privacy/i.test(link.href) || /privacy/i.test(link.text)
     );
 
     if (!hasPrivacyLink) {
+      const snippetInfo = findSnippet(html, /privacy/i);
+
       return [
         {
           id: "gdpr-privacy-policy",
@@ -153,6 +164,8 @@ export class ComplianceScanner {
           regulationCode: "GDPR-PRIVACY-NOTICE",
           regulationVersion: "2016",
           fix: "Add a prominently linked privacy policy page accessible from all pages.",
+          snippetHtml: snippetInfo?.snippetHtml,
+          snippetLine: snippetInfo?.snippetLine,
         },
       ];
     }
@@ -161,13 +174,16 @@ export class ComplianceScanner {
   }
 
   private checkContact(
-    links: Array<{ href: string; text: string }>
+    links: Array<{ href: string; text: string }>,
+    html: string
   ): ScanIssue[] {
     const hasContact = links.some((link) =>
       /contact/i.test(link.href) || /contact/i.test(link.text)
     );
 
     if (!hasContact) {
+      const snippetInfo = findSnippet(html, /contact/i);
+
       return [
         {
           id: "gdpr-contact",
@@ -181,10 +197,40 @@ export class ComplianceScanner {
           regulationCode: "GDPR-CONTACT",
           regulationVersion: "2016",
           fix: "Provide a contact or data request page/link in the footer.",
+          snippetHtml: snippetInfo?.snippetHtml,
+          snippetLine: snippetInfo?.snippetLine,
         },
       ];
     }
 
     return [];
   }
+}
+
+function findSnippet(
+  html: string,
+  needle: string | RegExp
+): { snippetHtml: string; snippetLine: number } | null {
+  const source = html ?? "";
+  if (!source) return null;
+
+  const index =
+    typeof needle === "string" ? source.indexOf(needle) : source.search(needle);
+
+  if (index === -1) return null;
+
+  const before = source.slice(0, index);
+  const snippetLine = before.split("\n").length;
+
+  const lineStart = before.lastIndexOf("\n") + 1;
+  const lineEnd = source.indexOf("\n", index);
+  const rawLine = source.slice(
+    lineStart,
+    lineEnd === -1 ? Math.min(index + 200, source.length) : lineEnd
+  );
+
+  return {
+    snippetHtml: rawLine.trim(),
+    snippetLine,
+  };
 }

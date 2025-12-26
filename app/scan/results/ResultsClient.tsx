@@ -26,6 +26,7 @@ export default function ResultsClient({
   const [status, setStatus] = useState<string>(
     String(scan.status).toUpperCase()
   );
+  const [isRerunning, setIsRerunning] = useState(false);
 
   const scanCompleted = status === "COMPLETED";
   const scanFailed = status === "FAILED";
@@ -33,6 +34,49 @@ export default function ResultsClient({
   const results = scan.results ?? null;
   const websiteUrl: string | undefined =
     (scan?.website?.url as string | undefined) ?? undefined;
+
+  async function handleRerun() {
+    if (!websiteUrl || isRerunning) return;
+
+    try {
+      setIsRerunning(true);
+
+      const endpoint = isAuthenticated ? "/api/scan/create" : "/api/scan";
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: websiteUrl }),
+      });
+
+      if (!res.ok) {
+        let message = "Unable to start a new scan.";
+        try {
+          const data = await res.json();
+          if (data?.error) {
+            message = String(data.error);
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+        alert(message);
+        return;
+      }
+
+      const data = await res.json();
+      const nextScanId = data?.scanId;
+
+      if (nextScanId) {
+        router.push(`/scan/results?scanId=${nextScanId}`);
+      }
+    } catch (err) {
+      console.error("RERUN_SCAN_FAILED", err);
+      alert("Something went wrong starting a new scan. Please try again.");
+    } finally {
+      setIsRerunning(false);
+    }
+  }
 
   // When users land on this page directly after signing in, the
   // scan may still be running. Poll the lightweight status endpoint
@@ -154,7 +198,7 @@ export default function ResultsClient({
                 )}
 
                 {hasFeature(plan, "detailedReports") ? (
-                  <ResultsGrid results={results} />
+                  <ResultsGrid results={results} plan={plan} />
                 ) : (
                   <LockedSection
                     scanId={scan.id}
@@ -180,6 +224,17 @@ export default function ResultsClient({
                   Turn this scan into progress. Share, schedule, and keep an eye
                   on changes over time.
                 </p>
+
+                {websiteUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRerun}
+                    disabled={isRerunning}
+                    className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-emerald-950 shadow-md shadow-emerald-500/40 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isRerunning ? "Re-running scan..." : "Re-run this scan for this URL"}
+                  </button>
+                )}
 
                 <ul className="space-y-3 text-xs text-neutral-200">
                   <li className="flex gap-2">

@@ -32,12 +32,12 @@ export default async function DashboardLayout({
 
       <div className="flex flex-1 flex-col">
         {/* Top bar */}
-        <header className="flex items-center justify-end border-b border-neutral-800 bg-neutral-950/80 px-8 py-3 backdrop-blur">
+        <header className="flex items-center justify-end border-b border-neutral-800 bg-neutral-950/80 px-4 py-3 sm:px-6 lg:px-8 backdrop-blur">
           <AlertBell />
         </header>
 
         {/* Main content */}
-        <main className="flex-1 px-6 py-6 md:px-10">
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
             {children}
           </div>
