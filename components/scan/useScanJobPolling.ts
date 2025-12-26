@@ -87,7 +87,10 @@ export function useScanJobPolling({
         if (data.status === "failed") {
           if (intervalRef.current) clearInterval(intervalRef.current);
           setLoading(false);
-          const message = "Scan failed. Please try again.";
+          const message =
+            typeof data.error === "string" && data.error
+              ? data.error
+              : "Scan failed. Please try again.";
           setError(message);
           if (active) onFailed?.(message);
         }

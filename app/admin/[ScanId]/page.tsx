@@ -11,13 +11,23 @@ export default async function AdminScanInspector({
 }) {
   await requireAdmin();
 
-  const scan = await prisma.scanJob.findUnique({
-    where: { id: params.scanId },
-    include: {
-      user: { select: { email: true } },
-      website: { select: { url: true } },
-    },
-  });
+  const [scan, executionLogs] = await Promise.all([
+    prisma.scanJob.findUnique({
+      where: { id: params.scanId },
+      include: {
+        user: { select: { email: true } },
+        website: { select: { url: true } },
+      },
+    }),
+    // Use a loose cast so this compiles before Prisma client is regenerated
+    (prisma as any).scanExecutionLog
+      ?.findMany?.({
+        where: { scanJobId: params.scanId },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      })
+      .catch?.(() => []) ?? [],
+  ]);
 
   if (!scan) notFound();
 
@@ -65,6 +75,49 @@ export default async function AdminScanInspector({
           <pre className="text-xs text-red-400">
             {scan.error}
           </pre>
+        </Section>
+      )}
+
+      {/* Execution logs */}
+      {Array.isArray(executionLogs) && executionLogs.length > 0 && (
+        <Section title="Execution logs">
+          <div className="overflow-x-auto text-xs">
+            <table className="min-w-full text-left">
+              <thead className="border-b border-neutral-800 text-[11px] uppercase tracking-[0.16em] text-neutral-500">
+                <tr>
+                  <th className="px-2 py-1">Time</th>
+                  <th className="px-2 py-1">Phase</th>
+                  <th className="px-2 py-1">Status</th>
+                  <th className="px-2 py-1">Duration (ms)</th>
+                  <th className="px-2 py-1">Error code</th>
+                </tr>
+              </thead>
+              <tbody>
+                {executionLogs.map((log: any) => (
+                  <tr
+                    key={log.id}
+                    className="border-b border-neutral-900/60 last:border-0"
+                  >
+                    <td className="px-2 py-1 text-[11px] text-neutral-400">
+                      {new Date(log.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-2 py-1 text-[11px] text-neutral-100">
+                      {log.phase}
+                    </td>
+                    <td className="px-2 py-1 text-[11px] text-neutral-100">
+                      {log.status}
+                    </td>
+                    <td className="px-2 py-1 text-[11px] text-neutral-100">
+                      {log.durationMs}
+                    </td>
+                    <td className="px-2 py-1 text-[11px] text-red-300">
+                      {log.errorCode ?? "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Section>
       )}
     </div>

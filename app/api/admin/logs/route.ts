@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { deleteScan } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,7 @@ export async function DELETE(req: Request) {
     );
   }
 
-  let body: { jobId?: string; all?: boolean } = {};
+  let body: { jobId?: string; all?: boolean; confirm?: string } = {};
   try {
     body = (await req.json()) as { jobId?: string; all?: boolean };
   } catch {
@@ -36,18 +37,46 @@ export async function DELETE(req: Request) {
   const { jobId, all } = body;
 
   if (jobId) {
-    await prisma.complianceAlert.deleteMany({
-      where: { scanJobId: jobId },
+    const scan = await prisma.scanJob.findUnique({
+      where: { id: jobId },
+      select: { id: true, userId: true },
     });
 
-    await prisma.scanJob.delete({
-      where: { id: jobId },
-    });
+    if (scan?.userId) {
+      await deleteScan({
+        scanId: scan.id,
+        userId: scan.userId,
+      });
+    } else {
+      await prisma.complianceAlert.deleteMany({
+        where: { scanJobId: jobId },
+      });
+
+      await prisma.scanJob.delete({
+        where: { id: jobId },
+      });
+    }
 
     return NextResponse.json({ success: true });
   }
 
   if (all) {
+    if (body.confirm !== "DELETE_ALL_SCANS") {
+      return NextResponse.json(
+        { error: "CONFIRMATION_REQUIRED" },
+        { status: 400 }
+      );
+    }
+
+    console.log(
+      JSON.stringify({
+        type: "admin-action",
+        action: "DELETE_ALL_SCANS",
+        performedBy: userId,
+        timestamp: new Date().toISOString(),
+      })
+    );
+
     await prisma.complianceAlert.deleteMany({});
     await prisma.scanJob.deleteMany({});
 

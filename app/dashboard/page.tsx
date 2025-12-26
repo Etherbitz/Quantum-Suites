@@ -12,11 +12,11 @@ import {
   calculateComplianceScore,
   getComplianceTrend,
 } from "@/lib/compliance";
-import { evaluateComplianceDropAlert } from "@/lib/alerts/complianceAlerts";
 import { PLAN_ALERT_CONFIG } from "@/lib/alerts/planAlertConfig";
 import { PLANS, type Plan } from "@/lib/plans";
 import { hasFeature } from "@/lib/featureAccess";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
+import { maybeCreateComplianceDropAlert } from "@/services/alertService";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -93,42 +93,15 @@ export default async function DashboardPage() {
   const effectiveThreshold =
     user?.alertDropThreshold ?? planConfig.dropThreshold;
 
-  if (alertsAllowed) {
-    const alert = evaluateComplianceDropAlert(
-      currentScore,
+  if (alertsAllowed && latestScan) {
+    await maybeCreateComplianceDropAlert({
+      userId: user.id,
+      plan,
+      scanJobId: latestScan.id,
       previousScore,
-      effectiveThreshold
-    );
-
-    if (alert) {
-      const cooldownStart = new Date();
-      cooldownStart.setHours(
-        cooldownStart.getHours() - planConfig.cooldownHours
-      );
-
-      const existingAlert =
-        await prisma.complianceAlert.findFirst({
-          where: {
-            userId: user.id,
-            createdAt: { gte: cooldownStart },
-            delta: { lt: 0 },
-          },
-          orderBy: { createdAt: "desc" },
-        });
-
-      if (!existingAlert) {
-        await prisma.complianceAlert.create({
-          data: {
-            userId: user.id,
-            scanJobId: latestScan?.id ?? null,
-            previousScore: alert.previousScore,
-            currentScore: alert.currentScore,
-            delta: alert.delta,
-            severity: alert.severity,
-          },
-        });
-      }
-    }
+      currentScore,
+      dropThresholdOverride: effectiveThreshold,
+    });
   }
 
   const latestSummary = latestScan?.summary as

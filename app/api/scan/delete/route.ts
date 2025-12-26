@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
+import { deleteScan } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -32,36 +32,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const scan = await prisma.scanJob.findFirst({
-      where: {
-        id: scanId,
-        userId: user.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!scan) {
-      return NextResponse.json(
-        { error: "SCAN_NOT_FOUND" },
-        { status: 404 }
-      );
+    try {
+      await deleteScan({ scanId, userId: user.id });
+    } catch (error) {
+      if (error instanceof Error && error.message === "SCAN_NOT_FOUND") {
+        return NextResponse.json(
+          { error: "SCAN_NOT_FOUND" },
+          { status: 404 }
+        );
+      }
+      throw error;
     }
-
-    // Remove any alerts tied to this scan for safety
-    await prisma.complianceAlert.deleteMany({
-      where: {
-        scanJobId: scan.id,
-        userId: user.id,
-      },
-    });
-
-    await prisma.scanJob.delete({
-      where: {
-        id: scan.id,
-      },
-    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

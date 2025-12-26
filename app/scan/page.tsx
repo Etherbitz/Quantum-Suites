@@ -43,6 +43,31 @@ function mapScanError(error?: string | null, reason?: string | null): ScanError 
           "Please enter a publicly accessible website URL. Localhost URLs cannot be scanned.",
       };
 
+    case "SCAN_FREQUENCY_LIMIT":
+      return {
+        title: "Scan frequency limit reached",
+        message:
+          "You recently scanned this site. Please wait before running another scan on this plan, or upgrade for more frequent checks.",
+        ctaLabel: "View Plans",
+        ctaHref: "/pricing",
+      };
+
+    case "EXECUTION_RATE_LIMIT":
+      return {
+        title: "Too many scans this hour",
+        message:
+          "You have reached the hourly scan limit for your current plan. Try again in a bit or upgrade for higher throughput.",
+        ctaLabel: "Upgrade Plan",
+        ctaHref: "/billing",
+      };
+
+    case "CONCURRENCY_LIMIT":
+      return {
+        title: "Too many scans running",
+        message:
+          "You already have the maximum number of scans running in parallel. Wait for one to finish, then try again.",
+      };
+
     default:
       if (combined.includes("FETCH_FAILED")) {
         return {

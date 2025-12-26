@@ -63,6 +63,10 @@ model User {
   alerts   ComplianceAlert[]
 
   aiUsages AiUsage[]
+
+  // Audit & execution logs
+  scanExecutionLogs ScanExecutionLog[]
+  alertAudits       AlertAudit[]
 }
 
 /**
@@ -111,6 +115,10 @@ model ScanJob {
   website    Website?          @relation(fields: [websiteId], references: [id])
   alerts     ComplianceAlert[]
 
+  // Audit & execution logs
+  executionLogs ScanExecutionLog[]
+  alertAudits   AlertAudit[]
+
   @@index([userId])
   @@index([websiteId])
   @@index([status])
@@ -136,6 +144,8 @@ model ComplianceAlert {
   user    User     @relation(fields: [userId], references: [id])
   scanJob ScanJob? @relation(fields: [scanJobId], references: [id])
 
+  audits AlertAudit[]
+
   @@index([userId])
   @@index([severity])
   @@index([createdAt])
@@ -151,6 +161,54 @@ model AiUsage {
 
   @@unique([userId, periodStart])
   @@index([userId])
+}
+
+model ScanExecutionLog {
+  id         String   @id @default(cuid())
+  scanJobId  String
+  userId     String?
+  phase      String
+  status     String
+  durationMs Int
+  errorCode  String?
+  createdAt  DateTime @default(now())
+
+  scanJob ScanJob @relation(fields: [scanJobId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@index([scanJobId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AlertAudit {
+  id            String   @id @default(cuid())
+  alertId       String
+  userId        String
+  scanJobId     String?
+  dropThreshold Int
+  delta         Int
+  previousScore Int
+  currentScore  Int
+  createdAt     DateTime @default(now())
+
+  alert   ComplianceAlert @relation(fields: [alertId], references: [id])
+  user    User            @relation(fields: [userId], references: [id])
+  scanJob ScanJob?        @relation(fields: [scanJobId], references: [id])
+
+  @@index([alertId])
+  @@index([userId])
+  @@index([scanJobId])
+  @@index([createdAt])
+}
+
+model StripeWebhookEvent {
+  id        String   @id // Stripe event.id
+  type      String
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
 }
 
 /**

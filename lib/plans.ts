@@ -2,6 +2,8 @@ export const PLANS = {
   free: {
     websites: 1,
     scanFrequency: "once",
+    maxConcurrentScans: 1,
+    rateLimitPerHour: 3,
     continuousMonitoring: false,
     detailedReports: false,
     changeAlerts: false,
@@ -16,6 +18,8 @@ export const PLANS = {
   starter: {
     websites: 1,
     scanFrequency: "weekly",
+    maxConcurrentScans: 2,
+    rateLimitPerHour: 20,
     continuousMonitoring: false,
     detailedReports: false,
     changeAlerts: false,
@@ -30,6 +34,8 @@ export const PLANS = {
   business: {
     websites: 10,
     scanFrequency: "continuous",
+    maxConcurrentScans: 5,
+    rateLimitPerHour: 100,
     continuousMonitoring: true,
     detailedReports: true,
     changeAlerts: true,
@@ -44,6 +50,8 @@ export const PLANS = {
   agency: {
     websites: Infinity,
     scanFrequency: "continuous",
+    maxConcurrentScans: 10,
+    rateLimitPerHour: 500,
     continuousMonitoring: true,
     detailedReports: true,
     changeAlerts: true,

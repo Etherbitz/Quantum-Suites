@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
+import { prisma } from "@/lib/db";
 import { updateUserPlanFromMetadata } from "@/services/billingService";
 
 export async function POST(req: Request) {
   try {
     // Initialize Stripe at request time to avoid build-time errors
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error("Stripe webhook misconfigured: missing keys");
+      return NextResponse.json(
+        { error: "Server misconfigured" },
+        { status: 500 }
+      );
+    }
+
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: "2025-12-15.clover",
     });
@@ -32,6 +41,27 @@ export async function POST(req: Request) {
         { error: "Invalid signature" },
         { status: 400 }
       );
+    }
+
+    // Idempotency: skip already-processed events
+    try {
+      const existing = await (prisma as any).stripeWebhookEvent.findUnique({
+        where: { id: event.id },
+      });
+
+      if (existing) {
+        console.log("Stripe webhook event already processed", event.id);
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+
+      await (prisma as any).stripeWebhookEvent.create({
+        data: {
+          id: event.id,
+          type: event.type,
+        },
+      });
+    } catch (logErr) {
+      console.error("STRIPE_WEBHOOK_EVENT_LOG_FAILED", logErr);
     }
 
     // Handle the event

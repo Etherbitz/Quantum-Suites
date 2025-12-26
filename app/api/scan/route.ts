@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { PLANS } from "@/lib/plans";
 import { queueScanJob } from "@/services/scanService";
 
 export const runtime = "nodejs";
@@ -26,6 +27,7 @@ export async function GET(req: Request) {
       status: true,
       score: true,
       createdAt: true,
+      error: true,
     },
   });
 
@@ -41,6 +43,7 @@ export async function GET(req: Request) {
     status: scan.status.toLowerCase(),
     score: scan.score,
     createdAt: scan.createdAt,
+    error: scan.error,
   });
 }
 
@@ -91,6 +94,28 @@ export async function POST(req: Request) {
         plan: "free",
       },
     });
+
+    // Lightweight abuse protection: cap anonymous scans per hour
+    const anonPlan = PLANS.free;
+    if (anonPlan.rateLimitPerHour && anonPlan.rateLimitPerHour > 0) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+      const recentAnonScans = await prisma.scanJob.count({
+        where: {
+          userId: anonUser.id,
+          createdAt: {
+            gte: oneHourAgo,
+          },
+        },
+      });
+
+      if (recentAnonScans >= anonPlan.rateLimitPerHour) {
+        return NextResponse.json(
+          { error: "EXECUTION_RATE_LIMIT" },
+          { status: 429 }
+        );
+      }
+    }
 
     const website = await prisma.website.upsert({
       where: {

@@ -10,6 +10,10 @@ type ScanJob = {
   status: string;
   score: number | null;
   createdAt: Date | string;
+  // Optional fields that may be present on ScanJob
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  summary?: any;
+  error?: string | null;
   website?: {
     url: string;
   } | null;
@@ -105,6 +109,30 @@ export default function ScanHistory({ scans, showFilter = false }: ScanHistoryPr
         const risk = getComplianceRisk(scan.score);
         const riskStyles = getRiskStyles(risk.level);
 
+        // Derive a human-readable reason for non-successful scans
+        const rawError = (scan as any).error as string | null | undefined;
+        const summary = (scan as any).summary as
+          | { mode?: string; reason?: string }
+          | null
+          | undefined;
+
+        let reasonLabel: string | null = null;
+
+        if (summary?.mode === "partial") {
+          reasonLabel =
+            summary.reason ??
+            "Partial results only — the scan encountered an error partway through.";
+        } else if (scan.status.toLowerCase() === "failed") {
+          if (rawError === "CONCURRENCY_LIMIT") {
+            reasonLabel =
+              "Not run: too many scans were already running in parallel for this user.";
+          } else if (rawError === "WEBSITE_NOT_FOUND") {
+            reasonLabel = "Website record was missing when this scan attempted to run.";
+          } else if (typeof rawError === "string" && rawError) {
+            reasonLabel = rawError;
+          }
+        }
+
         const handleDelete = async () => {
           if (
             !window.confirm(
@@ -174,6 +202,12 @@ export default function ScanHistory({ scans, showFilter = false }: ScanHistoryPr
                     {scan.status}
                   </span>
                 </div>
+
+                {reasonLabel && (
+                  <p className="mt-1 text-[11px] text-neutral-500">
+                    {reasonLabel}
+                  </p>
+                )}
               </div>
 
               {/* Right */}
