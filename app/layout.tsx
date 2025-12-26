@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import Link from "next/link";
+import Script from "next/script";
 import type { Metadata } from "next";
 import { SiteLogo } from "@/components/common/SiteLogo";
 import { HeaderAuth } from "@/components/common/HeaderAuth";
@@ -43,6 +44,18 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="bg-neutral-950 text-white">
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-4T7KHB3VSW"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-4T7KHB3VSW');
+            `}
+          </Script>
           <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
               <SiteLogo />

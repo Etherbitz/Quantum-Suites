@@ -92,7 +92,7 @@ function HeroSection() {
         <div className="hidden items-center justify-center md:flex">
           <Link
             href="/scan"
-            className="group relative block h-[360px] w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/40 bg-neutral-950/80 shadow-2xl shadow-cyan-500/30 transition-transform duration-500 ease-out hover:-translate-y-2"
+            className="group relative block h-90 w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/40 bg-neutral-950/80 shadow-2xl shadow-cyan-500/30 transition-transform duration-500 ease-out hover:-translate-y-2"
           >
             <div className="absolute inset-0 bg-linear-to-br from-cyan-500/25 via-transparent to-violet-500/40 opacity-50" />
 
