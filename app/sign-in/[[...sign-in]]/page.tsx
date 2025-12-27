@@ -108,7 +108,7 @@ export default function SignInPage() {
             Sign in to Quantum Suites
           </h2>
           <p className="mb-4 text-xs text-neutral-400 sm:text-sm">
-            Use email, passkey, or social login. Once you're in, we'll
+            Use email, passkey, or social login. Once you&apos;re in, we&apos;ll
             take you straight back to your latest scan.
           </p>
 

@@ -1,8 +1,19 @@
 import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getAdminMetrics } from "./data";
 import { ScansOverTimeChart, ScoreDistributionChart } from "@/components/admin";
+
+function getTenureDays(createdAt: Date): number {
+  return Math.max(
+    1,
+    Math.round(
+      (Date.now() - createdAt.getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
+  );
+}
 
 export default async function AdminDashboard() {
   const { userId } = await auth();
@@ -44,13 +55,7 @@ export default async function AdminDashboard() {
     }),
   ]);
 
-  const tenureDays = Math.max(
-    1,
-    Math.round(
-      (Date.now() - user.createdAt.getTime()) /
-        (1000 * 60 * 60 * 24)
-    )
-  );
+  const tenureDays = getTenureDays(user.createdAt);
   return (
     <main className="mx-auto max-w-7xl px-6 py-10 text-white">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -128,7 +133,7 @@ export default async function AdminDashboard() {
               Admin shortcuts
             </p>
             <div className="mt-1 flex flex-col gap-2">
-              <a
+              <Link
                 href="/admin/users"
                 className="inline-flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[11px] font-medium text-neutral-100 hover:border-emerald-500 hover:text-emerald-200"
               >
@@ -136,8 +141,8 @@ export default async function AdminDashboard() {
                 <span className="text-[10px] text-neutral-500">
                   View accounts & tiers
                 </span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/admin/plans"
                 className="inline-flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[11px] font-medium text-neutral-100 hover:border-sky-500 hover:text-sky-200"
               >
@@ -145,8 +150,8 @@ export default async function AdminDashboard() {
                 <span className="text-[10px] text-neutral-500">
                   Tier mix & overrides
                 </span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/admin/logs"
                 className="inline-flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-[11px] font-medium text-neutral-100 hover:border-amber-500 hover:text-amber-200"
               >
@@ -154,7 +159,7 @@ export default async function AdminDashboard() {
                 <span className="text-[10px] text-neutral-500">
                   Recent scans & events
                 </span>
-              </a>
+              </Link>
             </div>
           </div>
         </aside>
@@ -189,12 +194,12 @@ export default async function AdminDashboard() {
                   Most recent jobs across all websites.
                 </p>
               </div>
-              <a
+              <Link
                 href="/admin/logs"
                 className="text-[11px] font-medium text-neutral-400 hover:text-neutral-100"
               >
                 View all
-              </a>
+              </Link>
             </div>
 
             {recentScans.length === 0 ? (
@@ -248,12 +253,12 @@ export default async function AdminDashboard() {
                   Latest signups and their current tiers.
                 </p>
               </div>
-              <a
+              <Link
                 href="/admin/users"
                 className="text-[11px] font-medium text-neutral-400 hover:text-neutral-100"
               >
                 View all
-              </a>
+              </Link>
             </div>
 
             {recentUsers.length === 0 ? (

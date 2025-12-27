@@ -11,7 +11,6 @@ type ScanJob = {
   score: number | null;
   createdAt: Date | string;
   // Optional fields that may be present on ScanJob
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   summary?: any;
   error?: string | null;
   website?: {

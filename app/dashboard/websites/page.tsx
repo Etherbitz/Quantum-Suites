@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { PLANS, type Plan } from "@/lib/plans";
+import type { Plan } from "@/lib/plans";
 import { hasFeature } from "@/lib/featureAccess";
 import { WebsitesList } from "@/components/dashboard/WebsitesList";
 import { UsageMeter } from "@/components/common/UsageMeter";
@@ -40,7 +40,6 @@ export default async function WebsitesPage() {
     rawPlan === "starter" || rawPlan === "business" || rawPlan === "agency"
       ? (rawPlan as Plan)
       : "free";
-  const plan = PLANS[planKey];
 
   return (
     <div className="space-y-8">

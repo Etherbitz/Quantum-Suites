@@ -1,24 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const STORAGE_KEY = "qs-cookie-consent";
 
 export function CookieBanner() {
-  // Render visible by default in the initial HTML so scanners
-  // and first-time visitors see the banner before any scripts run.
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // Default to hidden on the server; show on the client
+  // only if the user has not previously given consent.
+  const [visible, setVisible] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
     const value = window.localStorage.getItem(STORAGE_KEY);
-    if (value) {
-      setVisible(false);
-    } else {
-      setVisible(true);
-    }
-  }, []);
+    return !value;
+  });
 
   if (!visible) return null;
 
@@ -37,7 +31,7 @@ export function CookieBanner() {
         <div className="mb-2 space-y-1 sm:mb-0">
           <p className="font-medium text-neutral-50">Cookie consent</p>
           <p className="text-[11px] text-neutral-400">
-            We use essential cookies and optional analytics to understand how Quantum Suites AI is used. By clicking "Accept cookies" you give consent; you can manage cookies at any time in your browser settings.
+            We use essential cookies and optional analytics to understand how Quantum Suites AI is used. By clicking &quot;Accept cookies&quot; you give consent; you can manage cookies at any time in your browser settings.
           </p>
           <Link
             href="/privacy"

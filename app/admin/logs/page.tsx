@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/adminGuard";
 import { prisma } from "@/lib/db";
 import { ActivityLogBulkActions } from "@/components/admin/ActivityLogBulkActions";
@@ -117,12 +118,12 @@ export default async function AdminLogsPage({
               Filter
             </button>
             {(q || statusFilter) && (
-              <a
+              <Link
                 href="/admin/logs"
                 className="text-[11px] text-neutral-400 hover:text-neutral-200"
               >
                 Reset
-              </a>
+              </Link>
             )}
           </div>
         </form>

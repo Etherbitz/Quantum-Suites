@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import Script from "next/script";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -29,6 +30,17 @@ export default async function BillingSuccessPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-b from-green-50 via-blue-50 to-purple-50">
+      <Script id="google-ads-purchase" strategy="afterInteractive">
+        {`
+          gtag('event', 'conversion_event_purchase', {
+            // TODO: paste event parameters from your Google Ads snippet here,
+            // for example:
+            // send_to: 'AW-XXXXXXXXXX/XXXXXXXXXXX',
+            // value: 79.0,
+            // currency: 'USD',
+          });
+        `}
+      </Script>
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">

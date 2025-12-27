@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import Link from "next/link";
 import { UsageMeter } from "@/components/common/UsageMeter";
 import { ResultsSummary } from "@/components/features/scan/ResultsSummary";
 import { ResultsGrid } from "@/components/features/scan/ResultsGrid";
@@ -155,7 +156,7 @@ export default function ResultsClient({
               <div>
                 <h2 className="text-lg font-semibold">Scan in progress</h2>
                 <p className="mt-1 text-xs text-neutral-400">
-                  We're analyzing your pages and security headers in real time.
+                  We&apos;re analyzing your pages and security headers in real time.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-neutral-400">
@@ -263,28 +264,28 @@ export default function ResultsClient({
                       <p className="font-medium">Create a lightweight audit trail</p>
                       <p className="text-neutral-400">
                         Capture scores over time so you can show regulators and
-                        clients that you're watching risk.
+                        clients that you&apos;re watching risk.
                       </p>
                     </div>
                   </li>
                 </ul>
 
                 <div className="mt-2 flex flex-col gap-2 text-xs">
-                  <a
+                  <Link
                     href="/dashboard"
                     className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-3 py-2 font-semibold text-emerald-950 shadow-md shadow-emerald-500/40 transition hover:bg-emerald-400"
                   >
                     Open compliance dashboard
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/dashboard/reports"
                     className="inline-flex items-center justify-center rounded-lg border border-neutral-700 px-3 py-2 font-medium text-neutral-100 hover:border-neutral-500"
                   >
                     View reports & exports
-                  </a>
+                  </Link>
                   {!hasFeature(plan, "detailedReports") && (
                     <p className="mt-1 text-[11px] text-neutral-500">
-                      On the free plan you'll see high-level issues. Upgrade to
+                      On the free plan you&apos;ll see high-level issues. Upgrade to
                       unlock full historical views and CSV/PDF exports.
                     </p>
                   )}

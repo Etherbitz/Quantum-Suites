@@ -625,47 +625,6 @@ function PricingCard({
   );
 }
 
-function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link
-          href="/"
-          className="text-lg font-semibold tracking-tight text-gray-900"
-        >
-          <span className="bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
-            Quantum Suites AI
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-          <Link href="#how-it-works" className="hover:text-gray-900">
-            How it works
-          </Link>
-          <Link href="#pricing" className="hover:text-gray-900">
-            Pricing
-          </Link>
-          <Link href="/scan" className="hover:text-gray-900">
-            Run a scan
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden text-sm font-medium text-gray-700 hover:text-gray-900 md:inline"
-          >
-            Sign in
-          </Link>
-          <Link href="/sign-up">
-            <PrimaryButton>Start free</PrimaryButton>
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
-
 function TestimonialsSection() {
   return (
     <section className="bg-white px-6 py-20">

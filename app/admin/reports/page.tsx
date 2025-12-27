@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
@@ -174,12 +175,12 @@ export default async function AdminReportsPage({
                 Apply filters
               </button>
               {(fromParam || toParam || websiteFilter || ownerFilter) && (
-                <a
+                <Link
                   href="/admin/reports"
                   className="text-[11px] text-neutral-500 hover:text-neutral-300"
                 >
                   Clear
-                </a>
+                </Link>
               )}
             </form>
             <div className="flex flex-wrap items-center gap-2">
@@ -228,7 +229,7 @@ export default async function AdminReportsPage({
                   Download CSV
                 </button>
               </form>
-              <a
+              <Link
                 href={`/api/admin/reports/export-html?${new URLSearchParams({
                   ...(fromParam ? { from: fromParam } : {}),
                   ...(toParam ? { to: toParam } : {}),
@@ -239,7 +240,7 @@ export default async function AdminReportsPage({
                 title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
               >
                 Download HTML report
-              </a>
+              </Link>
             </div>
           </div>
         )}

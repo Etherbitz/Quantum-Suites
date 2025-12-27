@@ -43,7 +43,7 @@ export default function SignUpPage() {
               </span>
             </h1>
             <p className="max-w-md text-sm text-neutral-300 sm:text-base">
-              In about a minute you'll have a live compliance score, a
+              In about a minute you&apos;ll have a live compliance score, a
               prioritized issues list, and a home for all future scans.
             </p>
           </div>

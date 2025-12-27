@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { Plan } from "@/lib/plans";
-import { UpgradeButton } from "@/components/common/UpgradeButton";
 
 export function NextActionsStepper({
   issues,

@@ -22,7 +22,6 @@ export default async function AlertsPage() {
 
   const rawPlan = (user.plan ?? "free").toLowerCase();
   const planKey = (rawPlan in PLANS ? rawPlan : "free") as Plan;
-  const plan = PLANS[planKey];
   const planAlerts = PLAN_ALERT_CONFIG[planKey];
 
   const alerts = await prisma.complianceAlert.findMany({

@@ -5,8 +5,6 @@ import { ComplianceScore } from "@/components/dashboard/ComplianceScore";
 import ScanHistory from "@/components/dashboard/ScanHistory";
 import { MetricCard, NextActionsStepper } from "@/components/features/dashboard";
 import { ComplianceTrendChart } from "@/components/features/dashboard";
-import { WebsitesList } from "@/components/dashboard/WebsitesList";
-import { ScheduleCard } from "@/components/dashboard/ScheduleCard";
 import { UpgradeCTA } from "@/components/common/UpgradeCTA";
 import {
   calculateComplianceScore,
@@ -67,12 +65,10 @@ export default async function DashboardPage() {
 
   for (const scan of scans) {
     // First scan we encounter is the most recent due to ordering
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const websiteId = (scan as any).websiteId as string | null | undefined;
+    const websiteId = scan.websiteId;
     if (!websiteId || websiteStatus.has(websiteId)) continue;
     websiteStatus.set(websiteId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      lastScanAt: (scan as any).createdAt as Date,
+      lastScanAt: scan.createdAt,
       lastScore: scan.score ?? null,
       lastScanId: scan.id,
     });
@@ -81,9 +77,6 @@ export default async function DashboardPage() {
   // Determine if alerts are allowed by plan + scan type
   const latestScan = currentPeriod[0];
   const isScheduledScan = latestScan?.type === "scheduled";
-  const isRealtimeScan =
-    latestScan?.type === "full" || latestScan?.type === "quick";
-
   const alertsAllowed =
     planConfig.enabled &&
     (planConfig.mode === "realtime" ||

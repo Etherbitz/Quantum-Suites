@@ -52,7 +52,7 @@ export function AdminCustomerPlanTool({
       setMessage(
         `Updated ${data.user.email || data.user.id} to ${data.user.plan}.`
       );
-    } catch (err) {
+    } catch {
       setError("Unexpected error updating customer plan.");
     } finally {
       setLoading(false);

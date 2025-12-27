@@ -37,7 +37,7 @@ export class ScanServiceError extends Error {
   }
 }
 
-const PUBLIC_ANON_USER_ID = "public-anonymous" as const;
+const PUBLIC_ANON_CLERK_ID = "public-anonymous" as const;
 
 /**
  * Central place to create and kick off scan jobs.
@@ -272,6 +272,7 @@ export async function executeScan(scanJobId: string): Promise<{
       user: {
         select: {
           id: true,
+          clerkId: true,
           plan: true,
         },
       },
@@ -290,7 +291,7 @@ export async function executeScan(scanJobId: string): Promise<{
     };
   }
 
-  const isPublicScan = job.userId === PUBLIC_ANON_USER_ID;
+  const isPublicScan = job.user?.clerkId === PUBLIC_ANON_CLERK_ID;
 
   if (job.status !== "QUEUED") {
     logPhase({
@@ -325,7 +326,7 @@ export async function executeScan(scanJobId: string): Promise<{
         where: {
           userId: job.userId,
           status: {
-            in: ["QUEUED", "RUNNING"],
+            in: ["RUNNING"],
           },
           id: {
             not: job.id,
@@ -472,7 +473,7 @@ export async function executeScan(scanJobId: string): Promise<{
                   : issue.severity === "warning"
                   ? "Warning"
                   : "Info";
-              return `${sevLabel}  b7 ${issue.category}  b7 ${issue.title}`;
+                return `${sevLabel} • ${issue.category} • ${issue.title}`;
             }),
         },
         results: serializedIssues,

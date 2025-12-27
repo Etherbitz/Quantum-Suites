@@ -1,10 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export async function DELETE(_request: NextRequest) {
+export async function DELETE() {
   const { userId } = await auth();
 
   if (!userId) {

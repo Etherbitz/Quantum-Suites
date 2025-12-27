@@ -214,10 +214,6 @@ export async function GET(req: Request) {
     const scanRowsHtml = scans
       .map((scan, index) => {
         const risk = getComplianceRisk(scan.score);
-        const summary = (scan.summary ?? {}) as {
-          riskLevel?: string;
-          topIssues?: string[];
-        };
 
         const prettyStatus = String(scan.status)
           .toLowerCase()
@@ -231,10 +227,6 @@ export async function GET(req: Request) {
             : "Manual";
 
         const automationEnabled = scan.website?.nextScanAt ? "Yes" : "No";
-
-        const topIssues = Array.isArray(summary.topIssues)
-          ? summary.topIssues
-          : [];
 
         const riskLevel =
           risk.level && typeof risk.level === "string"
@@ -297,10 +289,6 @@ export async function GET(req: Request) {
       .map((alert) => {
         const baseScore = alert.currentScore ?? alert.scanJob?.score;
         const risk = getComplianceRisk(baseScore);
-        const summary = (alert.scanJob?.summary ?? {}) as {
-          riskLevel?: string;
-          topIssues?: string[];
-        };
 
         const prettyStatus = String(alert.scanJob?.status ?? "")
           .toLowerCase()
@@ -316,10 +304,6 @@ export async function GET(req: Request) {
         const automationEnabled = alert.scanJob?.website?.nextScanAt
           ? "Yes"
           : "No";
-
-        const topIssues = Array.isArray(summary.topIssues)
-          ? summary.topIssues
-          : [];
 
         const scoreChange =
           alert.delta != null && alert.delta !== 0

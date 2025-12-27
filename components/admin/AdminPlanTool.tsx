@@ -43,7 +43,7 @@ export function AdminPlanTool({ currentPlan }: AdminPlanToolProps) {
       const updatedPlan = (data?.plan || selectedPlan) as Plan;
       setEffectivePlan(updatedPlan);
       setMessage(`Plan updated to ${updatedPlan}.`);
-    } catch (err) {
+    } catch {
       setError("Unexpected error updating plan.");
     } finally {
       setLoading(false);
