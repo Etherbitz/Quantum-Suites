@@ -1,20 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
 export default function SignupTracker() {
   const { user, isLoaded } = useUser();
+  const fired = useRef(false);
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isLoaded || !user || fired.current) return;
 
-    // Prevent duplicate firing
-    const hasTracked =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("qs_signup_tracked")
-        : null;
-    if (hasTracked) return;
+    fired.current = true;
 
     if (typeof window !== "undefined") {
       const w = window as any;
@@ -23,7 +19,6 @@ export default function SignupTracker() {
           method: "clerk",
         });
       }
-      window.localStorage.setItem("qs_signup_tracked", "true");
     }
   }, [isLoaded, user]);
 
