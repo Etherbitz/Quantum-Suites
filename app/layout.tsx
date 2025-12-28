@@ -8,6 +8,10 @@ import { HeaderNav } from "@/components/common/HeaderNav";
 import { CookieBanner } from "@/components/common/CookieBanner";
 import "./globals.css";
 
+// Google Analytics + optional Google Ads configuration
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-4T7KHB3VSW";
+const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+
 export const metadata: Metadata = {
   title: {
     default: "Quantum Suites AI | AI Website Scanning & Compliance Platform",
@@ -45,7 +49,7 @@ export default function RootLayout({
       <html lang="en">
         <body className="bg-neutral-950 text-white">
           <Script
-            src="https://www.googletagmanager.com/gtag/js?id=G-4T7KHB3VSW"
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
             strategy="afterInteractive"
           />
           <Script id="ga-init" strategy="afterInteractive">
@@ -54,7 +58,8 @@ export default function RootLayout({
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', 'G-4T7KHB3VSW', { debug_mode: true });
+              gtag('config', '${GA_MEASUREMENT_ID}', { debug_mode: true });
+              ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}');` : ""}
             `}
           </Script>
           <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">

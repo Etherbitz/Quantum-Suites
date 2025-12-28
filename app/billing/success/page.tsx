@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { PLANS, type Plan } from "@/lib/plans";
 
+const GOOGLE_ADS_CONVERSION_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID;
+const GOOGLE_ADS_CONVERSION_LABEL = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL;
+
 export const metadata: Metadata = {
   title: "Payment Successful",
   description: "Your subscription is now active",
@@ -49,6 +52,19 @@ export default async function BillingSuccessPage() {
           }
         `}
       </Script>
+      {GOOGLE_ADS_CONVERSION_ID && GOOGLE_ADS_CONVERSION_LABEL ? (
+        <Script id="google-ads-signup" strategy="afterInteractive">
+          {`
+            if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+              window.gtag('event', 'sign_up', {
+                send_to: '${GOOGLE_ADS_CONVERSION_ID}/${GOOGLE_ADS_CONVERSION_LABEL}',
+                value: ${planPrice},
+                currency: 'USD',
+              });
+            }
+          `}
+        </Script>
+      ) : null}
       {/* Navigation Bar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">

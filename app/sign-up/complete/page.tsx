@@ -64,6 +64,13 @@ export default function SignUpCompletePage() {
         userId: user.id,
         email: user.emailAddresses[0]?.emailAddress,
       });
+
+      // Fire GA4 sign_up event for Google Ads conversion import
+      if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+        (window as any).gtag("event", "sign_up", {
+          method: "Clerk",
+        });
+      }
     }
   };
 
