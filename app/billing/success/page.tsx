@@ -1,8 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/db";
 import Link from "next/link";
 import Script from "next/script";
 import type { Metadata } from "next";
+import { prisma } from "@/lib/db";
+import { PLANS, type Plan } from "@/lib/plans";
 
 export const metadata: Metadata = {
   title: "Payment Successful",
@@ -27,18 +28,25 @@ export default async function BillingSuccessPage() {
   }
 
   const planDisplay = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
+  const planConfig = PLANS[(userPlan as Plan) in PLANS ? (userPlan as Plan) : "free"];
+  const planPrice = planConfig.price ?? 0;
 
   return (
     <main className="min-h-screen bg-linear-to-b from-green-50 via-blue-50 to-purple-50">
       <Script id="google-ads-purchase" strategy="afterInteractive">
         {`
-          gtag('event', 'conversion_event_purchase', {
-            // TODO: paste event parameters from your Google Ads snippet here,
-            // for example:
-            // send_to: 'AW-XXXXXXXXXX/XXXXXXXXXXX',
-            // value: 79.0,
-            // currency: 'USD',
-          });
+          if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+            window.gtag('event', 'purchase', {
+              value: ${planPrice},
+              currency: 'USD',
+              items: [
+                {
+                  item_id: '${planDisplay.toLowerCase()}',
+                  item_name: '${planDisplay} Plan',
+                },
+              ],
+            });
+          }
         `}
       </Script>
       {/* Navigation Bar */}
