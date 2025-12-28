@@ -48,12 +48,13 @@ export default function RootLayout({
             src="https://www.googletagmanager.com/gtag/js?id=G-4T7KHB3VSW"
             strategy="afterInteractive"
           />
-          <Script id="google-analytics" strategy="afterInteractive">
+          <Script id="ga-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', 'G-4T7KHB3VSW');
+              gtag('config', 'G-4T7KHB3VSW', { debug_mode: true });
             `}
           </Script>
           <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
