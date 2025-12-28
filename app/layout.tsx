@@ -10,28 +10,28 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    default: "Quantum Suites AI | AI Website Scanning & Compliance Platform",
     template: "%s | Quantum Suites AI",
   },
   description:
-    "Automated website accessibility, privacy, and security scanning with daily monitoring, alerts, and audit-ready reports.",
+    "Quantum Suites AI helps businesses scan, analyze, and improve their websites with AI-powered compliance, SEO, and performance insights.",
   metadataBase: new URL("https://www.quantumsuites-ai.com"),
   alternates: {
     canonical: "https://www.quantumsuites-ai.com",
   },
   openGraph: {
-    title: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    title: "Quantum Suites AI | AI Website Scanning & Compliance Platform",
     description:
-      "See your compliance risk score, track changes over time, and export client-ready reports.",
+      "Quantum Suites AI helps businesses scan, analyze, and improve their websites with AI-powered compliance, SEO, and performance insights.",
     url: "https://www.quantumsuites-ai.com",
     siteName: "Quantum Suites AI",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quantum Suites AI – Automated Website Compliance & Risk Monitoring",
+    title: "Quantum Suites AI | AI Website Scanning & Compliance Platform",
     description:
-      "Automated website compliance checks with daily monitoring, alerts, and exportable reports.",
+      "Quantum Suites AI helps businesses scan, analyze, and improve their websites with AI-powered compliance, SEO, and performance insights.",
   },
 };
 

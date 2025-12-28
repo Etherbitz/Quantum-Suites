@@ -6,6 +6,7 @@ import ScanHistory from "@/components/dashboard/ScanHistory";
 import { MetricCard, NextActionsStepper } from "@/components/features/dashboard";
 import { ComplianceTrendChart } from "@/components/features/dashboard";
 import { UpgradeCTA } from "@/components/common/UpgradeCTA";
+import SignupTracker from "@/components/analytics/SignupTracker";
 import {
   calculateComplianceScore,
   getComplianceTrend,
@@ -108,6 +109,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <SignupTracker />
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-neutral-500">
