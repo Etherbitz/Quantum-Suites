@@ -44,6 +44,42 @@ export async function POST(req: Request) {
       clerkUser.emailAddresses[0].emailAddress
     );
 
+    // Require basic billing profile details before starting a paid subscription.
+    // Free accounts can exist without this, but upgrades must have it filled in.
+    const requiredFields: Array<{
+      key: keyof typeof user;
+      label: string;
+    }> = [
+      { key: "firstName", label: "First name" },
+      { key: "lastName", label: "Last name" },
+      { key: "addressLine1", label: "Street address" },
+      { key: "city", label: "City" },
+      { key: "state", label: "State / region" },
+      { key: "postalCode", label: "Postal code" },
+      { key: "country", label: "Country" },
+    ] as any;
+
+    const missing = requiredFields
+      .filter(({ key }) => {
+        const raw = (user as any)[key];
+        if (typeof raw !== "string") return true;
+        return raw.trim().length === 0;
+      })
+      .map((f) => f.label);
+
+    if (missing.length > 0) {
+      return NextResponse.json(
+        {
+          error: "PROFILE_INCOMPLETE",
+          code: "PROFILE_INCOMPLETE",
+          missingFields: missing,
+          message:
+            "Please complete your billing profile (name and address) before upgrading.",
+        },
+        { status: 400 }
+      );
+    }
+
     // Derive base app URL for redirect targets.
     // Falls back to the current request origin in development
     // if NEXT_PUBLIC_APP_URL is not defined.

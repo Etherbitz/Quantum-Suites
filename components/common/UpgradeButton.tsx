@@ -17,11 +17,11 @@ export function UpgradeButton({
 }) {
   const [loading, setLoading] = useState(false);
 
-  async function upgrade() {
+  async function handleClick() {
     setLoading(true);
     await Sentry.startSpan(
       {
-        name: "stripe_checkout_flow",
+        name: "plan_change_flow",
         op: "ui.action",
         attributes: { plan },
       },
@@ -36,7 +36,7 @@ export function UpgradeButton({
             return;
           }
 
-          // Create Stripe checkout session
+          // Create Stripe checkout session (upgrades / new subscriptions)
           const response = await fetch("/api/stripe/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -67,6 +67,19 @@ export function UpgradeButton({
               window.location.href =
                 "/sign-in?redirect_url=" +
                 encodeURIComponent(window.location.pathname);
+              return;
+            }
+
+            // Handle incomplete profile separately so we can guide the user.
+            if (response.status === 400 && data?.code === "PROFILE_INCOMPLETE") {
+              console.warn("Profile incomplete for upgrade", {
+                missingFields: data?.missingFields,
+              });
+              alert(
+                data?.message ||
+                  "Please complete your billing profile (name and address) before upgrading."
+              );
+              window.location.href = "/dashboard/settings";
               return;
             }
 
@@ -117,7 +130,7 @@ export function UpgradeButton({
 
   return (
     <button
-      onClick={upgrade}
+      onClick={handleClick}
       disabled={loading}
       className={`${baseClasses} ${colorClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
     >

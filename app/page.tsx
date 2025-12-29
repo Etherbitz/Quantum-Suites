@@ -4,9 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { SecondaryButton } from "@/components/ui/SecondaryButton";  
-import { UpgradeButton } from "@/components/common/UpgradeButton";   
-
+import { SecondaryButton } from "@/components/ui/SecondaryButton";
+import { PricingCard } from "@/components/features/pricing";
+import { UpgradeButton } from "@/components/common/UpgradeButton";
+import { ManagePlanButton } from "@/components/common/ManagePlanButton";
+import { getPlanRelation } from "@/lib/planRelations";
+ 
 /**
  * Home page for Quantum Suites AI.
  * Primary conversion-focused landing page.
@@ -19,8 +22,8 @@ export default function HomePage() {
         <ProblemSection />
         <HowItWorksSection />
         <MonitoringSection />
-        <SocialProofSection />
         <PricingSection />
+        <SocialProofSection />
         <TestimonialsSection />
         <FAQSection />
         <FinalCTASection />
@@ -40,7 +43,7 @@ export default function HomePage() {
 function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-linear-to-b from-slate-950 via-slate-950 to-slate-950 px-6 py-24 text-white">
-      {/* glows */}
+      {/* background glows */}
       <div className="pointer-events-none absolute inset-x-0 -top-40 flex justify-center opacity-60">
         <div className="h-64 w-64 rounded-full bg-cyan-500/40 blur-3xl" />
       </div>
@@ -65,12 +68,12 @@ function HeroSection() {
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-neutral-300">
             Know exactly where you stand today. Reduce legal exposure from
-            accessibility and privacy complaints  without needing to become a
+            accessibility and privacy complaints without needing to become a
             legal or technical expert.
           </p>
 
           <p className="mt-4 text-sm font-medium text-neutral-300">
-            Built for solo founders, agencies, and inhouse marketers who can&apos;t
+            Built for solo founders, agencies, and in-house marketers who can&apos;t
             afford surprise compliance issues.
           </p>
 
@@ -335,20 +338,60 @@ function MonitoringSection() {
  * Pricing section with tiered plans.
  */
 function PricingSection() {
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPlan() {
+      try {
+        const response = await fetch("/api/plan/current");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled) {
+          setCurrentPlan(data?.plan ?? null);
+        }
+      } catch {
+        // best-effort only
+      }
+    }
+
+    loadPlan();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const relationToStarter = getPlanRelation("starter", currentPlan);
+  const relationToBusiness = getPlanRelation("business", currentPlan);
+  const relationToAgency = getPlanRelation("agency", currentPlan);
+
   return (
     <section
       id="pricing"
-      className="px-6 py-24 bg-linear-to-b from-gray-50 to-white"
+      className="px-6 py-24 bg-linear-to-b from-blue-50 via-indigo-50 to-purple-50"
     >
-      <div className="mx-auto max-w-7xl text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-3">Simple, Transparent Pricing</h2>
-        <p className="text-gray-600 text-lg mb-3">Choose the plan that fits your needs</p>
+      <div className="mx-auto max-w-7xl">
+        <div className="text-center mb-12">
+          <div className="inline-block mb-3">
+            <div className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+              No Long-Term Contracts
+            </div>
+          </div>
 
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 mb-10">
-           Free scan first • Cancel anytime • Privacy-first scanning
-        </p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+            <span className="bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Simple, Transparent Pricing
+            </span>
+          </h2>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-3">
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+            Choose the plan that fits your needs.
+            <span className="font-semibold text-gray-900"> Cancel anytime, no questions asked.</span>
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
           <PricingCard
             title="Starter"
             price="$29/month"
@@ -359,20 +402,51 @@ function PricingSection() {
               "WCAG, GDPR, and security basics",
               "Plain-language summary of top issues",
             ]}
+            action={
+              relationToStarter === "current" ? (
+                <button
+                  disabled
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                >
+                  Current Plan
+                </button>
+              ) : relationToStarter === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Starter" />
+              ) : (
+                <UpgradeButton plan="starter" label="Upgrade to Starter" />
+              )
+            }
           />
 
           <PricingCard
             title="Business"
             price="$79/month"
-            subtitle="For teams that want automated daily monitoring, alerts, and exportable evidence for stakeholders"
+            subtitle="For teams that want automated daily monitoring, alerts, and exportable compliance evidence"
             highlight
             features={[
               "Monitor up to 10 websites with automated daily scanning",
               "Full WCAG, GDPR, and security issue breakdowns",
               "Change alerts when your risk score drops",
-              "Downloadable CSV and HTML/PDF audit reports for stakeholders",
+              "Downloadable CSV and HTML audit reports for stakeholders",
               "5 AI assistant sessions per month included",
             ]}
+            action={
+              relationToBusiness === "current" ? (
+                <button
+                  disabled
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                >
+                  Current Plan
+                </button>
+              ) : relationToBusiness === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Business" />
+              ) : (
+                <UpgradeButton
+                  plan="business"
+                  label="Upgrade to Business"
+                />
+              )
+            }
           />
 
           <PricingCard
@@ -380,11 +454,25 @@ function PricingSection() {
             price="$199/month"
             subtitle="For agencies managing many client sites with branded reports and AI assistance"
             features={[
-              "Unlimited client websites with automated daily monitoring",
-              "Central, multi-site compliance dashboard",
-              "White-label CSV and HTML/PDF reports for your clients",
+              "Unlimited client websites with automated daily scanning",
+              "Central, multi-site compliance dashboard for all clients",
+              "White-label CSV and HTML reports you can send to stakeholders",
               "AI assistant to help prioritize and fix issues (500 replies/month included)",
             ]}
+            action={
+              relationToAgency === "current" ? (
+                <button
+                  disabled
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                >
+                  Current Plan
+                </button>
+              ) : relationToAgency === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Agency" />
+              ) : (
+                <UpgradeButton plan="agency" label="Upgrade to Agency" />
+              )
+            }
           />
         </div>
       </div>
@@ -559,68 +647,6 @@ function StepCard({
     <div className="rounded-2xl border-2 border-gray-700 p-8 bg-gray-900 text-left hover:border-orange-400 transition-all hover:scale-105">
       <h3 className="text-lg font-bold text-white mb-3">{title}</h3>
       <p className="text-gray-300 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
-/**
- * Pricing tier card.
- */
-function PricingCard({
-  title,
-  price,
-  subtitle,
-  features,
-  highlight = false,
-}: {
-  title: string;
-  price: string;
-  subtitle: string;
-  features: string[];
-  highlight?: boolean;
-}) {
-  const planName = title.toLowerCase() as "starter" | "business" | "agency";
-
-  return (
-    <div className="relative">
-      <div
-        className={`rounded-2xl border-2 p-8 transition-all hover:scale-105 hover:shadow-2xl ${
-          highlight 
-            ? "border-blue-500 bg-linear-to-br from-blue-50 to-indigo-50 shadow-xl scale-105" 
-            : "border-gray-200 bg-white shadow-lg"
-        }`}
-      >
-      {highlight && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-600 text-white text-sm font-bold rounded-full">
-          MOST POPULAR
-        </div>
-      )}
-      <div className="relative">
-        <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-        <p className="mt-2 text-sm text-gray-600">{subtitle}</p>
-        <div className="mt-6 mb-8">
-          <span className="text-5xl font-bold text-gray-900">{price.includes('$') ? price.split('/')[0] : price}</span>
-          {price.includes('/') && <span className="text-gray-600 text-lg">/month</span>}
-        </div>
-
-        <ul className="space-y-4 text-left text-gray-700 mb-8">
-          {features.map((feature) => (
-            <li key={feature} className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-green-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-        <UpgradeButton
-          plan={planName}
-          label="Get Started"
-          highlight={highlight}
-          fullWidth={true}
-        />
-      </div>
-      </div>
     </div>
   );
 }

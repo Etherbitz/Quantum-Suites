@@ -21,10 +21,10 @@ export function PricingCard({
 }) {
   return (
     <div
-      className={`relative rounded-2xl border p-8 transition-all duration-300 ${
+      className={`relative flex h-full flex-col rounded-2xl border p-8 transition-all duration-300 ${
         highlight
-          ? "border-blue-600 bg-blue-50 shadow-xl scale-[1.03] hover:scale-[1.05] hover:shadow-2xl"
-          : "border-gray-200 bg-white hover:shadow-lg"
+          ? "border-blue-600 bg-blue-50 shadow-xl md:min-h-115 md:scale-[1.04] hover:scale-[1.06] hover:-translate-y-2 hover:shadow-2xl"
+          : "border-gray-200 bg-white md:min-h-105 hover:-translate-y-1 hover:shadow-lg"
       }`}
     >
       {highlight && (
@@ -40,7 +40,7 @@ export function PricingCard({
 
       <p className="mt-6 text-3xl font-bold text-gray-900">{price}</p>
 
-      <ul className="mt-6 space-y-2 text-sm text-gray-700">
+      <ul className="mt-6 flex-1 space-y-2 text-sm text-gray-700">
         {features.map((feature) => (
           <li key={feature}>• {feature}</li>
         ))}

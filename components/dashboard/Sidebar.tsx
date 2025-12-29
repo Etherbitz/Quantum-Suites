@@ -126,6 +126,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
             </li>
           </ul>
         </div>
+
+        <div className="mt-6">
+          <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+            Account
+          </p>
+          <ul className="mt-2 space-y-1 text-[13px]">
+            <li>
+              <Link
+                href="/dashboard/settings"
+                className={`block rounded-xl px-3 py-2 font-medium transition hover:bg-neutral-800 hover:text-neutral-50 ${
+                  pathname.startsWith("/dashboard/settings")
+                    ? "bg-neutral-900 text-neutral-50"
+                    : "text-neutral-300"
+                }`}
+              >
+                Profile
+              </Link>
+            </li>
+          </ul>
+        </div>
       </nav>
 
       <div className="mt-6 border-t border-neutral-800 pt-4 text-[11px] text-neutral-500">

@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { PricingCard } from "@/components/features/pricing";
 import { UpgradeButton } from "@/components/common/UpgradeButton";
+import { ManagePlanButton } from "@/components/common/ManagePlanButton";
+import { getPlanRelation } from "@/lib/planRelations";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
@@ -27,6 +29,10 @@ export default async function PricingPage() {
 
     currentPlan = user?.plan ?? null;
   }
+
+  const relationToStarter = getPlanRelation("starter", currentPlan);
+  const relationToBusiness = getPlanRelation("business", currentPlan);
+  const relationToAgency = getPlanRelation("agency", currentPlan);
 
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 via-indigo-50 to-purple-50">
@@ -88,18 +94,17 @@ export default async function PricingPage() {
               "Plain-language summary of top issues",
             ]}
             action={
-              currentPlan === "starter" ? (
+              relationToStarter === "current" ? (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
                 >
                   Current Plan
                 </button>
+              ) : relationToStarter === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Starter" />
               ) : (
-                <UpgradeButton
-                  plan="starter"
-                  label="Upgrade to Starter"
-                />
+                <UpgradeButton plan="starter" label="Upgrade to Starter" />
               )
             }
           />
@@ -118,18 +123,17 @@ export default async function PricingPage() {
                "5 AI assistant sessions per month included",
             ]}
             action={
-              currentPlan === "business" ? (
+              relationToBusiness === "current" ? (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
                 >
                   Current Plan
                 </button>
+              ) : relationToBusiness === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Business" />
               ) : (
-                <UpgradeButton
-                  plan="business"
-                  label="Upgrade to Business"
-                />
+                <UpgradeButton plan="business" label="Upgrade to Business" />
               )
             }
           />
@@ -146,18 +150,17 @@ export default async function PricingPage() {
               "AI assistant to help prioritize and fix issues (500 replies/month included)",
             ]}
             action={
-              currentPlan === "agency" ? (
+              relationToAgency === "current" ? (
                 <button
                   disabled
-                  className="w-full rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
+                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
                 >
                   Current Plan
                 </button>
+              ) : relationToAgency === "downgrade" ? (
+                <ManagePlanButton label="Downgrade to Agency" />
               ) : (
-                <UpgradeButton
-                  plan="agency"
-                  label="Upgrade to Agency"
-                />
+                <UpgradeButton plan="agency" label="Upgrade to Agency" />
               )
             }
           />

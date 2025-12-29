@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import Stripe from "stripe";
 
 import { prisma } from "@/lib/db";
 import { PLANS, type Plan } from "@/lib/plans";
@@ -63,6 +64,44 @@ export default async function SettingsPage() {
 
   const websitesUsed = user.websites.length;
   const websitesLimit = plan.websites;
+
+  // Look up the active Stripe subscription (if any) to show
+  // a professional "Renews on" date in the account & plan panel.
+  let subscriptionRenewalDate: string | null = null;
+
+  if (planKey !== "free" && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+      const customers = await stripe.customers.list({
+        email: user.email,
+        limit: 1,
+      });
+
+      const customer = customers.data[0];
+
+      if (customer) {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customer.id,
+          status: "active",
+          limit: 1,
+        });
+
+        const subscription = subscriptions.data[0];
+
+        if (subscription && subscription.current_period_end) {
+          const date = new Date(subscription.current_period_end * 1000);
+          subscriptionRenewalDate = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
+        }
+      }
+    } catch (err) {
+      console.error("SETTINGS_SUBSCRIPTION_RENEWAL_LOOKUP_FAILED", err);
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -156,6 +195,14 @@ export default async function SettingsPage() {
                 </Link>
               </dd>
             </div>
+            {subscriptionRenewalDate && (
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-neutral-400">Renews on</dt>
+                <dd className="text-right text-neutral-100">
+                  {subscriptionRenewalDate}
+                </dd>
+              </div>
+            )}
           </dl>
 
           <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-900/80 p-4 text-xs">

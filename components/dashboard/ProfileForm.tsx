@@ -69,26 +69,26 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
           <input
             type="text"
             value={form.firstName}
-            onChange={(e) =>
-              canEditName && updateField("firstName", e.target.value)
-            }
-            disabled={!canEditName}
+            onChange={(e) => updateField("firstName", e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Alex"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600">Last name</label>
           <input
             type="text"
             value={form.lastName}
-            onChange={(e) =>
-              canEditName && updateField("lastName", e.target.value)
-            }
-            disabled={!canEditName}
+            onChange={(e) => updateField("lastName", e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
             placeholder="Rodriguez"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
       </div>
 
@@ -158,6 +158,9 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
             placeholder="United States"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
       </div>
 
@@ -170,6 +173,9 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           placeholder="Street address"
         />
+        <p className="mt-1 text-[11px] text-gray-500">
+          Required to subscribe to a paid plan.
+        </p>
         <input
           type="text"
           value={form.addressLine2}
@@ -188,6 +194,9 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
             onChange={(e) => updateField("city", e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600">State / Region</label>
@@ -197,6 +206,9 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
             onChange={(e) => updateField("state", e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600">Postal code</label>
@@ -206,6 +218,9 @@ export function ProfileForm({ initialProfile, canEditName }: ProfileFormProps) {
             onChange={(e) => updateField("postalCode", e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            Required to subscribe to a paid plan.
+          </p>
         </div>
       </div>
 

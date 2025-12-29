@@ -83,13 +83,9 @@ export async function PUT(req: Request) {
     state: sanitizeString(body.state),
     postalCode: sanitizeString(body.postcode ?? body.postalCode),
     country: sanitizeString(body.country),
+    firstName: sanitizeString(body.firstName),
+    lastName: sanitizeString(body.lastName),
   };
-
-  // Only admins can change first/last name via the profile API.
-  if ((user as any).role === "ADMIN") {
-    updateData.firstName = sanitizeString(body.firstName);
-    updateData.lastName = sanitizeString(body.lastName);
-  }
 
   if (typeof body.marketingOptIn === "boolean") {
     updateData.marketingOptIn = body.marketingOptIn;
