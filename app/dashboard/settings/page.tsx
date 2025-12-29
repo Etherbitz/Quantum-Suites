@@ -87,10 +87,12 @@ export default async function SettingsPage() {
           limit: 1,
         });
 
-        const subscription = subscriptions.data[0];
+        const subscription: any = subscriptions.data[0];
+        const periodEnd: number | undefined =
+          subscription?.current_period_end ?? undefined;
 
-        if (subscription && subscription.current_period_end) {
-          const date = new Date(subscription.current_period_end * 1000);
+        if (periodEnd) {
+          const date = new Date(periodEnd * 1000);
           subscriptionRenewalDate = date.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
