@@ -106,6 +106,12 @@ export default function ScanPage() {
 
   const isBusy = loading || polling || Boolean(scanJobId);
 
+  function normalizeUrl(raw: string): string {
+    const trimmed = raw.trim();
+    if (!trimmed) return trimmed;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -113,11 +119,14 @@ export default function ScanPage() {
     setScanJobId(null);
     setLoading(true);
 
+    const normalizedUrl = normalizeUrl(url);
+    setUrl(normalizedUrl);
+
     try {
       const res = await fetch("/api/scan/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: normalizedUrl }),
       });
 
       let payload: ScanCreateResponse | null = null;
@@ -138,7 +147,7 @@ export default function ScanPage() {
         const fallback = await fetch("/api/scan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url: normalizedUrl }),
         });
 
         if (!fallback.ok) {
