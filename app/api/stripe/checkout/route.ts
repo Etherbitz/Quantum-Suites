@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import * as Sentry from "@sentry/nextjs";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 
 export const runtime = "nodejs";
@@ -49,33 +50,44 @@ export async function POST(req: Request) {
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      customer_email: user.email,
-      metadata: {
-        userId: user.id,
-        planName: planName,
-      },
-      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/pricing`,
-      subscription_data: {
-        metadata: {
-          userId: user.id,
-          planName: planName,
+    // Create Stripe checkout session with a dedicated Sentry span
+    const session = await Sentry.startSpan(
+      {
+        name: "stripe.checkout.sessions.create",
+        op: "stripe",
+        attributes: {
+          planName,
         },
       },
-    });
+      async () =>
+        stripe.checkout.sessions.create({
+          mode: "subscription",
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          customer_email: user.email,
+          metadata: {
+            userId: user.id,
+            planName: planName,
+          },
+          success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl}/pricing`,
+          subscription_data: {
+            metadata: {
+              userId: user.id,
+              planName: planName,
+            },
+          },
+        })
+    );
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error: unknown) {
     console.error("Stripe checkout error:", error);
+    Sentry.captureException(error);
 
     let message = "Failed to create checkout session";
     if (typeof error === "object" && error && "message" in error) {

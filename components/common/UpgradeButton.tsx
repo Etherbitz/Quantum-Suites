@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { PLANS } from "@/lib/plans";
 
 export function UpgradeButton({
@@ -18,77 +19,92 @@ export function UpgradeButton({
 
   async function upgrade() {
     setLoading(true);
+    await Sentry.startSpan(
+      {
+        name: "stripe_checkout_flow",
+        op: "ui.action",
+        attributes: { plan },
+      },
+      async () => {
+        try {
+          const planData = PLANS[plan];
+          const stripePriceId = planData.stripePriceId;
 
-    try {
-      const planData = PLANS[plan];
-      const stripePriceId = planData.stripePriceId;
+          if (!stripePriceId) {
+            alert("This plan is not available yet");
+            setLoading(false);
+            return;
+          }
 
-      if (!stripePriceId) {
-        alert("This plan is not available yet");
-        setLoading(false);
-        return;
-      }
-
-      // Create Stripe checkout session
-      const response = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          priceId: stripePriceId,
-          planName: plan,
-        }),
-      });
-      const text = await response.text();
-      let data: any = null;
-
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch {
-        data = null;
-      }
-
-      if (!response.ok) {
-        // Special-case unauthenticated users: send them to sign-in
-        if (response.status === 401) {
-          console.warn("Upgrade requires authentication, redirecting to sign-in.", {
-            status: response.status,
-            body: text,
+          // Create Stripe checkout session
+          const response = await fetch("/api/stripe/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              priceId: stripePriceId,
+              planName: plan,
+            }),
           });
-          window.location.href = 
-            "/sign-in?redirect_url=" + encodeURIComponent(window.location.pathname);
-          return;
+          const text = await response.text();
+          let data: any = null;
+
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch {
+            data = null;
+          }
+
+          if (!response.ok) {
+            // Special-case unauthenticated users: send them to sign-in
+            if (response.status === 401) {
+              console.warn(
+                "Upgrade requires authentication, redirecting to sign-in.",
+                {
+                  status: response.status,
+                  body: text,
+                }
+              );
+              window.location.href =
+                "/sign-in?redirect_url=" +
+                encodeURIComponent(window.location.pathname);
+              return;
+            }
+
+            console.error("Upgrade error response:", {
+              status: response.status,
+              statusText: response.statusText,
+              body: text,
+              data,
+            });
+
+            alert(data?.error || "Checkout request failed");
+            setLoading(false);
+            return;
+          }
+
+          if (data?.url) {
+            // Redirect to Stripe checkout
+            window.location.href = data.url;
+          } else {
+            console.error("Unexpected checkout payload:", {
+              status: response.status,
+              statusText: response.statusText,
+              body: text,
+              data,
+            });
+            alert("No checkout URL returned from server");
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error("Upgrade error:", error);
+          Sentry.captureException(error, {
+            data: { plan },
+          });
+          alert("Failed to start checkout. Please try again.");
+          setLoading(false);
         }
-
-        console.error("Upgrade error response:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: text,
-          data,
-        });
-
-        alert(data?.error || "Checkout request failed");
-        setLoading(false);
-        return;
       }
-
-      if (data?.url) {
-        // Redirect to Stripe checkout
-        window.location.href = data.url;
-      } else {
-        console.error("Unexpected checkout payload:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: text,
-          data,
-        });
-        alert("No checkout URL returned from server");
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Upgrade error:", error);
-      alert("Failed to start checkout. Please try again.");
-      setLoading(false);
-    }
+    );
   }
 
   const baseClasses = fullWidth 

@@ -15,7 +15,10 @@ export default function SignupTracker() {
     if (typeof window !== "undefined") {
       const w = window as any;
       if (typeof w.gtag === "function") {
-        w.gtag("event", "sign_up", {
+        // Track a login event for analytics only.
+        // True sign-ups fire "sign_up" from the onboarding
+        // completion page so Google Ads conversions stay clean.
+        w.gtag("event", "login", {
           method: "clerk",
         });
       }
