@@ -10,7 +10,7 @@ export function HeaderNav() {
         <Link href="/#how-it-works" className="hover:text-white">
           How it works
         </Link>
-        <Link href="/#pricing" className="hover:text-white">
+        <Link href="/pricing" className="hover:text-white">
           Pricing
         </Link>
         <Link href="/scan" className="hover:text-white">
