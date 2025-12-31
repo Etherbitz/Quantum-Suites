@@ -1,7 +1,7 @@
 export const PLANS = {
   free: {
     websites: 1,
-    scanFrequency: "once",
+    scanFrequency: "daily",
     maxConcurrentScans: 1,
     rateLimitPerHour: 3,
     continuousMonitoring: false,

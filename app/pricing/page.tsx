@@ -82,6 +82,27 @@ export default async function PricingPage() {
       <section className="px-6 pb-12">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-3">
+          {/* Free (described but handled in-app as default) */}
+          <PricingCard
+            title="Free"
+            price="$0"
+            subtitle="1 site, 1 basic scan per day, saved history. No card required."
+            features={[
+              "Run 1 basic scan per day for a single website",
+              "See your compliance score and top issues",
+              "Save your scan history for that site",
+              "Upgrade anytime for full details and automation",
+            ]}
+            action={
+              <Link
+                href="/scan"
+                className="block w-full rounded-lg bg-blue-600 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Start free daily scans
+              </Link>
+            }
+          />
+
           {/* Starter */}
           <PricingCard
             title="Starter"
