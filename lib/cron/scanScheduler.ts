@@ -41,7 +41,6 @@ export async function runDueWebsiteScans(now = new Date()): Promise<ScanSchedule
       userId: website.userId,
       websiteId: website.id,
       type: "scheduled",
-      autoStart: true,
     });
 
     await prisma.website.update({
