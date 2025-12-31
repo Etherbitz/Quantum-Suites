@@ -142,7 +142,6 @@ export async function createScan({
     userId: user.id,
     websiteId: website.id,
     type: "manual",
-    autoStart: true,
   });
 
   let nextScanAt: Date | null = null;
