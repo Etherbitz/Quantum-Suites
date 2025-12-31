@@ -12,6 +12,7 @@ import { ResultsSuggestions } from "@/components/results/ResultsSuggestions";
 import { UpgradeCTA } from "@/components/common/UpgradeCTA";
 import { hasFeature } from "@/lib/featureAccess";
 import { AiAssistant } from "@/components/results/AiAssistant";
+import { TopIssuesPreview } from "@/components/results/TopIssuesPreview";
 import type { Plan } from "@/lib/plans";
 
 export default function ResultsClient({
@@ -22,6 +23,7 @@ export default function ResultsClient({
   scan: any;
   plan: Plan;
   isAuthenticated: boolean;
+  isAnonView?: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<string>(
@@ -193,6 +195,13 @@ export default function ResultsClient({
                   results={results}
                   isAuthenticated={isAuthenticated}
                 />
+
+                {typeof results !== "undefined" && results !== null && (
+                  <TopIssuesPreview
+                    results={results}
+                    mode={!isAuthenticated ? "anon" : plan === "free" ? "free" : "paid"}
+                  />
+                )}
 
                 {isAuthenticated && hasFeature(plan, "aiAssistant") && (
                   <AiAssistant scanId={scan.id} />

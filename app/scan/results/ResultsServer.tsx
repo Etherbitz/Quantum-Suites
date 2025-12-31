@@ -58,6 +58,12 @@ export default async function ResultsShell({
       website: {
         select: { url: true },
       },
+      user: {
+        select: {
+          id: true,
+          clerkId: true,
+        },
+      },
     },
   });
 
@@ -65,11 +71,16 @@ export default async function ResultsShell({
     redirect("/scan");
   }
 
+  const isAnonymousScanView =
+    !dbUserId &&
+    scan.user?.clerkId === "public-anonymous";
+
   return (
     <ResultsClient
       scan={scan}
       plan={plan}
       isAuthenticated={!!dbUserId}
+      isAnonView={isAnonymousScanView}
     />
   );
 }   
