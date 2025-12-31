@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { SignUp } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect_url") ?? "/dashboard";
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
@@ -83,8 +87,8 @@ export default function SignUpPage() {
               },
             }}
             signInUrl="/sign-in"
-            afterSignUpUrl="/dashboard"
-            afterSignInUrl="/dashboard"
+            afterSignUpUrl={redirectUrl}
+            afterSignInUrl={redirectUrl}
           />
         </div>
       </section>

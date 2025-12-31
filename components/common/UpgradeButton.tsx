@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import * as Sentry from "@sentry/nextjs";
 import { PLANS } from "@/lib/plans";
 import { trackEvent } from "@/lib/analytics/gtag";
@@ -17,6 +18,7 @@ export function UpgradeButton({
   fullWidth?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
+  const { isSignedIn } = useAuth();
 
   async function handleClick() {
     // GA4: user clicked an upgrade CTA for a specific plan
@@ -24,6 +26,16 @@ export function UpgradeButton({
       plan,
       location: "pricing_card",
     });
+
+    // If the user is not signed in, send them through sign-up
+    // and then straight into the correct Stripe checkout flow.
+    if (!isSignedIn) {
+      const upgradeTarget = `/billing/upgrade?plan=${plan}`;
+      const signUpUrl =
+        "/sign-up?redirect_url=" + encodeURIComponent(upgradeTarget);
+      window.location.href = signUpUrl;
+      return;
+    }
 
     setLoading(true);
     await Sentry.startSpan(
