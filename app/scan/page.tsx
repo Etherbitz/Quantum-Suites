@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { UsageMeter } from "@/components/common/UsageMeter";
 import { useScanJobPolling } from "@/components/scan/useScanJobPolling";
+import { trackEvent } from "@/lib/analytics/gtag";
 
 type ScanCreateResponse = {
   scanJobId?: string;
@@ -122,6 +123,12 @@ export default function ScanPage() {
     const normalizedUrl = normalizeUrl(url);
     setUrl(normalizedUrl);
 
+    // GA4: user initiated a scan from the scan page
+    trackEvent("scan_start", {
+      url: normalizedUrl,
+      source: "scan_page",
+    });
+
     try {
       const res = await fetch("/api/scan/create", {
         method: "POST",
@@ -155,18 +162,39 @@ export default function ScanPage() {
         }
 
         const { scanId } = await fallback.json();
+        // GA4: anonymous scan completed immediately without polling
+        trackEvent("scan_complete", {
+          url: normalizedUrl,
+          source: "scan_page_anonymous_direct",
+          scanId,
+        });
         router.push(`/scan/results?scanId=${scanId}`);
         return;
       }
 
-      setError(mapScanError(payload?.error, payload?.reason));
+      const mapped = mapScanError(payload?.error, payload?.reason);
+      // GA4: scan failed to start due to a handled API error
+      trackEvent("scan_error", {
+        url: normalizedUrl,
+        source: "scan_page_primary",
+        error: payload?.error ?? mapped.title,
+        reason: payload?.reason ?? mapped.message,
+        status: res.status,
+      });
+      setError(mapped);
     } catch (err) {
-      setError(
-        mapScanError(
-          err instanceof Error ? err.message : null,
-          err instanceof Error ? err.message : null
-        )
-      );
+      const message =
+        err instanceof Error ? err.message : String(err ?? "Unknown error");
+      const mapped = mapScanError(message, message);
+
+      // GA4: unexpected error while attempting to start a scan
+      trackEvent("scan_error", {
+        url: normalizedUrl,
+        source: "scan_page_catch",
+        error: message,
+      });
+
+      setError(mapped);
     } finally {
       setLoading(false);
     }
@@ -345,7 +373,15 @@ export default function ScanPage() {
           </div>
 
           <div className="mt-12 text-center">
-            <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              onClick={() =>
+                trackEvent("pricing_cta_click", {
+                  location: "scan_page_unlock_full_reports",
+                })
+              }
+            >
               <span>Unlock Full Reports</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -379,7 +415,16 @@ function FeatureCard({ icon, title, badge, description, isFree }: { icon: string
       <p className="text-gray-600 leading-relaxed">{description}</p>
       {!isFree && (
         <div className="mt-4">
-          <Link href="/pricing" className="text-purple-600 font-semibold text-sm hover:text-purple-700">
+          <Link
+            href="/pricing"
+            className="text-purple-600 font-semibold text-sm hover:text-purple-700"
+            onClick={() =>
+              trackEvent("pricing_cta_click", {
+                location: "scan_page_featurecard",
+                feature: title,
+              })
+            }
+          >
             View Plans →
           </Link>
         </div>

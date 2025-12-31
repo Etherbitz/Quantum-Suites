@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/lib/analytics/gtag";
 
 type JobStatus = "idle" | "queued" | "running" | "completed" | "failed";
 
@@ -81,6 +82,12 @@ export function useScanJobPolling({
           if (intervalRef.current) clearInterval(intervalRef.current);
           setLoading(false);
           setError(null);
+          // GA4: scan finished successfully via background polling
+          trackEvent("scan_complete", {
+            source: "scan_polling",
+            scanJobId,
+            scanId: data.scanId,
+          });
           if (active && data.scanId) onCompleted?.(data.scanId);
         }
 
@@ -92,6 +99,12 @@ export function useScanJobPolling({
               ? data.error
               : "Scan failed. Please try again.";
           setError(message);
+          // GA4: scan explicitly marked as failed by status API
+          trackEvent("scan_error", {
+            source: "scan_polling",
+            scanJobId,
+            error: message,
+          });
           if (active) onFailed?.(message);
         }
       } catch (err) {
@@ -102,6 +115,12 @@ export function useScanJobPolling({
             ? err.message
             : "Could not check status. Please retry.";
         setError(message);
+        // GA4: polling error (network or unexpected)
+        trackEvent("scan_error", {
+          source: "scan_polling_catch",
+          scanJobId,
+          error: message,
+        });
         if (active) onFailed?.(message);
       }
     }, pollIntervalMs);

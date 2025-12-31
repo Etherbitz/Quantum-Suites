@@ -3,6 +3,7 @@
 import { useState } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { PLANS } from "@/lib/plans";
+import { trackEvent } from "@/lib/analytics/gtag";
 
 export function UpgradeButton({
   plan,
@@ -18,6 +19,12 @@ export function UpgradeButton({
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
+    // GA4: user clicked an upgrade CTA for a specific plan
+    trackEvent("pricing_cta_click", {
+      plan,
+      location: "pricing_card",
+    });
+
     setLoading(true);
     await Sentry.startSpan(
       {

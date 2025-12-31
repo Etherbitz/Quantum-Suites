@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { trackEvent } from "@/lib/analytics/gtag";
 
 export function ManagePlanButton({
   label,
@@ -11,6 +12,12 @@ export function ManagePlanButton({
   const [loading, setLoading] = useState(false);
 
   async function openPortal() {
+    // GA4: user attempted to open the billing portal
+    trackEvent("billing_portal_click", {
+      source: "manage_plan_button",
+      label,
+    });
+
     setLoading(true);
     await Sentry.startSpan(
       {

@@ -2,10 +2,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Link from "next/link";
 import Script from "next/script";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteLogo } from "@/components/common/SiteLogo";
 import { HeaderAuth } from "@/components/common/HeaderAuth";
 import { HeaderNav } from "@/components/common/HeaderNav";
 import { CookieBanner } from "@/components/common/CookieBanner";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import "./globals.css";
 
 // Google Analytics + optional Google Ads configuration
@@ -48,6 +50,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="bg-neutral-950 text-white">
+          {/* Global analytics: GA4 page views on every route change */}
+          <Suspense fallback={null}>
+            <AnalyticsProvider />
+          </Suspense>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
             strategy="afterInteractive"

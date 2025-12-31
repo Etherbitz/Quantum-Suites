@@ -9,6 +9,7 @@ import { PricingCard } from "@/components/features/pricing";
 import { UpgradeButton } from "@/components/common/UpgradeButton";
 import { ManagePlanButton } from "@/components/common/ManagePlanButton";
 import { getPlanRelation } from "@/lib/planRelations";
+import { trackEvent } from "@/lib/analytics/gtag";
  
 /**
  * Home page for Quantum Suites AI.
@@ -78,13 +79,27 @@ function HeroSection() {
 
           {/* CTAs */}
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/scan">
+            <Link
+              href="/scan"
+              onClick={() =>
+                trackEvent("scan_cta_click", {
+                  location: "home_hero_primary",
+                })
+              }
+            >
               <PrimaryButton>
                 Scan My Website — Free
               </PrimaryButton>
             </Link>
 
-            <Link href="/pricing">
+            <Link
+              href="/pricing"
+              onClick={() =>
+                trackEvent("pricing_cta_click", {
+                  location: "home_hero_secondary",
+                })
+              }
+            >
               <SecondaryButton>
                 View Pricing
               </SecondaryButton>
@@ -101,6 +116,11 @@ function HeroSection() {
           <Link
             href="/scan"
             className="group relative block h-90 w-full max-w-2xl overflow-hidden rounded-2xl border border-cyan-500/40 bg-neutral-950/80 shadow-2xl shadow-cyan-500/30 transition-transform duration-500 ease-out hover:-translate-y-2"
+            onClick={() =>
+              trackEvent("scan_cta_click", {
+                location: "home_hero_dashboard_card",
+              })
+            }
           >
             <div className="absolute inset-0 bg-linear-to-br from-cyan-500/25 via-transparent to-violet-500/40 opacity-50" />
 
@@ -385,7 +405,7 @@ function PricingSection() {
           </h2>
 
           <p className="text-lg text-gray-700 max-w-2xl mx-auto leading-relaxed">
-            Start free, then upgrade when you're ready for automated monitoring,
+            Start free, then upgrade when you&apos;re ready for automated monitoring,
             audit-ready reports, and AI help fixing issues before they hit revenue.
             <span className="font-semibold text-gray-900"> Stay compliant, win bigger deals, and cancel anytime — no contracts or hidden fees.</span>
           </p>
@@ -407,6 +427,12 @@ function PricingSection() {
               <Link
                 href="/scan"
                 className="block w-full rounded-xl bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-blue-500/40 transition hover:shadow-xl hover:brightness-110"
+                onClick={() =>
+                  trackEvent("pricing_cta_click", {
+                    plan: "free",
+                    location: "home_pricing_free",
+                  })
+                }
               >
                 Start free daily scans
               </Link>
@@ -560,7 +586,14 @@ function FinalCTASection() {
       </p>
 
       <div className="mt-8">
-        <Link href="/scan">
+        <Link
+          href="/scan"
+          onClick={() =>
+            trackEvent("scan_cta_click", {
+              location: "home_final_cta",
+            })
+          }
+        >
           <PrimaryButton inverted>
             Scan My Website — Free
           </PrimaryButton>
