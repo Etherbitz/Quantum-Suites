@@ -15,7 +15,7 @@ export function HeaderAuth() {
         </Link>
         <Link
           href="/sign-up"
-          className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm shadow-blue-500/40 transition hover:bg-blue-500 hover:shadow-blue-400/60 sm:text-sm"
+          className="rounded-full bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-[0_12px_35px_rgba(37,99,235,0.7)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(37,99,235,0.9)] sm:text-sm"
         >
           Start free
         </Link>

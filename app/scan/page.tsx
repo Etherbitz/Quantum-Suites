@@ -174,40 +174,6 @@ export default function ScanPage() {
 
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 via-indigo-50 to-purple-50">
-      {/* Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            Quantum Suites AI
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="px-4 py-2 text-gray-700 text-sm font-medium hover:text-blue-600 transition-colors"
-            >
-              Home
-            </Link>
-            <SignedOut>
-              <Link
-                href="/sign-up"
-                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-              >
-                Sign Up
-              </Link>
-            </SignedOut>
-            <SignedIn>
-              <Link
-                href="/dashboard"
-                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:border-blue-400 hover:text-blue-600 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-          </div>
-        </div>
-      </nav>
-
       {/* Compact Hero + Form Section */}
       <section className="px-6 py-12">
         <div className="mx-auto max-w-3xl">
@@ -262,7 +228,7 @@ export default function ScanPage() {
               <button
                 type="submit"
                 disabled={isBusy}
-                className="w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-600 py-4 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full rounded-2xl bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 py-4 text-white font-semibold text-lg shadow-[0_18px_55px_rgba(15,23,42,0.45)] transition-all transform hover:-translate-y-0.5 hover:shadow-[0_26px_70px_rgba(15,23,42,0.6)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 {isBusy ? (
                   <span className="flex items-center justify-center gap-3">

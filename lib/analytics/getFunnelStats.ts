@@ -10,11 +10,31 @@ export interface FunnelStats {
   count: number;
 }
 
+export type FunnelWindow = "all" | "7d" | "30d";
+
 /**
  * Returns funnel counts.
- * Currently mocked.
+ *
+ * By default returns all-time numbers; pass a window ("7d" or "30d")
+ * to constrain counts to a recent period.
  */
-export async function getFunnelStats(): Promise<FunnelStats[]> {
+export async function getFunnelStats(
+  window: FunnelWindow = "all"
+): Promise<FunnelStats[]> {
+  const now = new Date();
+  const since =
+    window === "7d"
+      ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      : window === "30d"
+      ? new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      : null;
+
+  const createdFilter = since
+    ? {
+        gte: since,
+      }
+    : undefined;
+
   const [
     scanJobCount,
     websiteCount,
@@ -24,6 +44,7 @@ export async function getFunnelStats(): Promise<FunnelStats[]> {
     // Only include scan jobs from non-admin users
     prisma.scanJob.count({
       where: {
+        createdAt: createdFilter,
         user: {
           role: "USER",
           clerkId: { not: "public-anonymous" },
@@ -33,6 +54,7 @@ export async function getFunnelStats(): Promise<FunnelStats[]> {
     // Only include websites owned by non-admin users
     prisma.website.count({
       where: {
+        createdAt: createdFilter,
         user: {
           role: "USER",
           clerkId: { not: "public-anonymous" },
@@ -42,6 +64,7 @@ export async function getFunnelStats(): Promise<FunnelStats[]> {
     // Only real, non-admin users
     prisma.user.count({
       where: {
+        createdAt: createdFilter,
         role: "USER",
         clerkId: { not: "public-anonymous" },
       },
@@ -49,6 +72,7 @@ export async function getFunnelStats(): Promise<FunnelStats[]> {
     // Paying, non-admin users
     prisma.user.count({
       where: {
+        createdAt: createdFilter,
         role: "USER",
         clerkId: { not: "public-anonymous" },
         plan: { not: "free" },

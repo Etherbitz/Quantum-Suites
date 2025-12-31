@@ -120,13 +120,13 @@ export function UpgradeButton({
     );
   }
 
-  const baseClasses = fullWidth 
-    ? "w-full px-6 py-4 rounded-xl font-bold text-lg transition-all"
-    : "w-full rounded-lg px-6 py-3 font-medium transition";
+  const baseClasses = fullWidth
+    ? "w-full px-6 py-4 rounded-xl font-bold text-lg transition-all transform"
+    : "w-full rounded-xl px-6 py-3 font-medium transition-all transform";
 
   const colorClasses = highlight
-    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
-    : "bg-gray-900 text-white hover:bg-gray-800";
+    ? "bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 text-white shadow-[0_14px_40px_rgba(37,99,235,0.7)] hover:shadow-[0_20px_55px_rgba(37,99,235,0.85)] hover:brightness-110 hover:-translate-y-0.5"
+    : "bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md hover:-translate-y-0.5";
 
   return (
     <button

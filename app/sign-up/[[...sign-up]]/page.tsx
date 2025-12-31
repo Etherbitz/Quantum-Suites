@@ -7,28 +7,7 @@ import { SignUp } from "@clerk/nextjs";
 export default function SignUpPage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
-      {/* Top nav */}
-      <header className="border-b border-neutral-900/80 bg-neutral-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight text-white/90 hover:text-white"
-          >
-            Quantum Suites AI
-          </Link>
-
-          <nav className="flex items-center gap-4 text-xs text-neutral-400 sm:text-sm">
-            <Link href="/pricing" className="hover:text-white">
-              Pricing
-            </Link>
-            <Link href="/scan" className="hover:text-white">
-              Run a scan
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
+      <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
         {/* Left: product value for new accounts */}
         <div className="w-full max-w-xl space-y-6">
           <p className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">

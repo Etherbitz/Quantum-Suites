@@ -78,7 +78,7 @@ export function ManagePlanButton({
     <button
       onClick={openPortal}
       disabled={loading}
-      className="w-full rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+      className="w-full rounded-xl border border-gray-700/80 bg-gray-900/95 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-black/30 transition-all transform hover:bg-gray-900 hover:shadow-xl hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {loading ? "Loading..." : label}
     </button>

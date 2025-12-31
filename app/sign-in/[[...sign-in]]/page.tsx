@@ -7,28 +7,7 @@ import { SignIn } from "@clerk/nextjs";
 export default function SignInPage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
-      {/* Top nav (simple, product focused) */}
-      <header className="border-b border-neutral-900/80 bg-neutral-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight text-white/90 hover:text-white"
-          >
-            Quantum Suites AI
-          </Link>
-
-          <nav className="flex items-center gap-4 text-xs text-neutral-400 sm:text-sm">
-            <Link href="/pricing" className="hover:text-white">
-              Pricing
-            </Link>
-            <Link href="/scan" className="hover:text-white">
-              Run a scan
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
+      <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
         {/* Left column: narrative + trust */}
         <div className="w-full max-w-xl space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
@@ -79,12 +58,6 @@ export default function SignInPage() {
           </div>
 
           <div className="flex flex-col gap-3 pt-1 sm:flex-row">
-            <a
-              href="#signin-form"
-              className="inline-flex flex-1 items-center justify-center rounded-full bg-linear-to-r from-sky-400 to-cyan-500 px-6 py-3 text-sm font-semibold text-neutral-950 shadow-[0_0_40px_rgba(56,189,248,0.45)] transition hover:scale-[1.02] hover:shadow-[0_0_55px_rgba(56,189,248,0.6)]"
-            >
-              Sign in to continue
-            </a>
             <Link
               href="/sign-up"
               className="inline-flex flex-1 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950/60 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(15,23,42,0.7)] transition hover:border-neutral-500 hover:bg-neutral-900"

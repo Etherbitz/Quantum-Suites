@@ -28,7 +28,6 @@ export default function HomePage() {
         <FAQSection />
         <FinalCTASection />
       </main>
-      <SiteFooter />
     </div>
   );
 }
@@ -381,39 +380,65 @@ function PricingSection() {
 
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
             <span className="bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Simple, Transparent Pricing
+              Protect Revenue While You Grow
             </span>
           </h2>
 
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Choose the plan that fits your needs.
-            <span className="font-semibold text-gray-900"> Cancel anytime, no questions asked.</span>
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto leading-relaxed">
+            Start free, then upgrade when you're ready for automated monitoring,
+            audit-ready reports, and AI help fixing issues before they hit revenue.
+            <span className="font-semibold text-gray-900"> Stay compliant, win bigger deals, and cancel anytime — no contracts or hidden fees.</span>
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="flex gap-6 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible">
+          {/* Free tier */}
+          <PricingCard
+            title="Free"
+            price="$0"
+            subtitle="Get a daily compliance health check for one site while you validate traction. No credit card required."
+            features={[
+              "Ideal for: validating a new site without legal surprises",
+              "Run one automated scan per day to catch obvious risks early",
+              "See your compliance score and top issues before prospects do",
+              "Upgrade in one click when growth or investors demand more detail",
+            ]}
+            action={
+              <Link
+                href="/scan"
+                className="block w-full rounded-xl bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 py-3 text-center text-sm font-semibold text-white shadow-md shadow-blue-500/40 transition hover:shadow-xl hover:brightness-110"
+              >
+                Start free daily scans
+              </Link>
+            }
+          />
+
           <PricingCard
             title="Starter"
             price="$29/month"
-            subtitle="For single sites that need a basic compliance health check"
+            subtitle="For single sites that need reliable, low-lift compliance coverage while revenue ramps."
             features={[
-              "Monitor 1 website",
-              "Weekly compliance scans & refreshed score",
-              "WCAG, GDPR, and security basics",
-              "Plain-language summary of top issues",
+              "Ideal for: solo founders and small in-house teams",
+              "Monitor one production site with weekly automated scans so launches stay live",
+              "Cover core WCAG, GDPR, and baseline security checks to reduce legal risk",
+              "Get plain‑English summaries that turn compliance issues into a clear fix list",
             ]}
             action={
               relationToStarter === "current" ? (
                 <button
                   disabled
-                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                  className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 py-3 text-sm font-semibold text-gray-500 shadow-inner"
                 >
                   Current Plan
                 </button>
               ) : relationToStarter === "downgrade" ? (
                 <ManagePlanButton label="Downgrade to Starter" />
               ) : (
-                <UpgradeButton plan="starter" label="Upgrade to Starter" />
+                <UpgradeButton
+                  plan="starter"
+                  label="Upgrade to Starter"
+                  highlight
+                />
               )
             }
           />
@@ -421,20 +446,19 @@ function PricingSection() {
           <PricingCard
             title="Business"
             price="$79/month"
-            subtitle="For teams that want automated daily monitoring, alerts, and exportable compliance evidence"
+            subtitle="For teams that need daily monitoring, alerts, and exportable evidence to protect revenue and close bigger deals."
             highlight
             features={[
-              "Monitor up to 10 websites with automated daily scanning",
-              "Full WCAG, GDPR, and security issue breakdowns",
-              "Change alerts when your risk score drops",
-              "Downloadable CSV and HTML audit reports for stakeholders",
-              "5 AI assistant sessions per month included",
+              "Ideal for: in‑house legal, security, and marketing teams",
+              "Monitor up to 10 key sites with automated daily scans so campaigns stay compliant",
+              "Get alerts when your risk score drops so you can fix issues before they impact revenue",
+              "Export CSV and HTML audit reports your stakeholders can trust to pass reviews",
             ]}
             action={
               relationToBusiness === "current" ? (
                 <button
                   disabled
-                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                  className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 py-3 text-sm font-semibold text-gray-500 shadow-inner"
                 >
                   Current Plan
                 </button>
@@ -444,6 +468,7 @@ function PricingSection() {
                 <UpgradeButton
                   plan="business"
                   label="Upgrade to Business"
+                  highlight
                 />
               )
             }
@@ -452,25 +477,29 @@ function PricingSection() {
           <PricingCard
             title="Agency"
             price="$199/month"
-            subtitle="For agencies managing many client sites with branded reports and AI assistance"
+            subtitle="For agencies managing many client sites that need white‑label reporting, retention insurance, and AI assistance."
             features={[
-              "Unlimited client websites with automated daily scanning",
-              "Central, multi-site compliance dashboard for all clients",
-              "White-label CSV and HTML reports you can send to stakeholders",
-              "AI assistant to help prioritize and fix issues (500 replies/month included)",
+              "Ideal for: agencies growing retainers with compliance as a service",
+              "Monitor unlimited client websites with automated daily scanning so you spot issues before clients do",
+              "Use a central, multi‑site compliance dashboard to prove ongoing value in QBRs",
+              "Send white‑label CSV and HTML reports, backed by 500 AI replies/month to prioritize fixes and keep accounts safer",
             ]}
             action={
               relationToAgency === "current" ? (
                 <button
                   disabled
-                  className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-3 text-sm font-medium text-gray-500"
+                  className="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 py-3 text-sm font-semibold text-gray-500 shadow-inner"
                 >
                   Current Plan
                 </button>
               ) : relationToAgency === "downgrade" ? (
                 <ManagePlanButton label="Downgrade to Agency" />
               ) : (
-                <UpgradeButton plan="agency" label="Upgrade to Agency" />
+                <UpgradeButton
+                  plan="agency"
+                  label="Upgrade to Agency"
+                  highlight
+                />
               )
             }
           />
@@ -774,26 +803,3 @@ function FAQItem({
   );
 }
 
-function SiteFooter() {
-  return (
-    <footer className="border-t border-gray-200 bg-white px-6 py-6 text-xs text-gray-500">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 md:flex-row">
-        <p>© {new Date().getFullYear()} Quantum Suites AI. All rights reserved.</p>
-        <div className="flex gap-4">
-          <Link href="/privacy" className="hover:text-gray-700">
-            Privacy
-          </Link>
-          <Link href="/terms" className="hover:text-gray-700">
-            Terms
-          </Link>
-          <Link href="/contact" className="hover:text-gray-700">
-            Contact us
-          </Link>
-          <Link href="/scan" className="hover:text-gray-700">
-            Run a scan
-          </Link>
-        </div>
-      </div>
-    </footer>
-  );
-}

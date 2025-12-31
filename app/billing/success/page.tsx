@@ -65,19 +65,6 @@ export default async function BillingSuccessPage() {
           `}
         </Script>
       ) : null}
-      {/* Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            Quantum Suites AI
-          </Link>
-          <div className="flex gap-4">
-            <Link href="/dashboard" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-              Go to Dashboard
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       {/* Success Section */}
       <section className="px-6 py-20">
