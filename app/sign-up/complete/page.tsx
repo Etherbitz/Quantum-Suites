@@ -70,6 +70,11 @@ export default function SignUpCompletePage() {
         (window as any).gtag("event", "sign_up", {
           method: "Clerk",
         });
+
+        // Custom funnel event for analytics dashboards
+        (window as any).gtag("event", "signup_success", {
+          method: "Clerk",
+        });
       }
     }
   };

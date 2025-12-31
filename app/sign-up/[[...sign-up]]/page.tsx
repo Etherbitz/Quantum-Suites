@@ -4,10 +4,23 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { trackEvent } from "@/lib/analytics/gtag";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect_url") ?? "/dashboard";
+
+  useEffect(() => {
+    // GA4: detailed signup funnel instrumentation
+    trackEvent("signup_page_view", {
+      redirectUrl,
+    });
+
+    trackEvent("signup_form_visible", {
+      redirectUrl,
+    });
+  }, [redirectUrl]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -62,9 +75,12 @@ export default function SignUpPage() {
           <h2 className="mb-2 text-lg font-semibold sm:text-xl">
             Create your account
           </h2>
-          <p className="mb-4 text-xs text-neutral-400 sm:text-sm">
+          <p className="mb-1 text-xs text-neutral-400 sm:text-sm">
             Use your work email to keep scans and alerts tied to your
             organization.
+          </p>
+          <p className="mb-4 text-[11px] font-medium text-emerald-300 sm:text-xs">
+            Takes about 30 seconds • No credit card required
           </p>
 
           <SignUp

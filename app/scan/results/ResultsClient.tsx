@@ -13,6 +13,7 @@ import { UpgradeCTA } from "@/components/common/UpgradeCTA";
 import { hasFeature } from "@/lib/featureAccess";
 import { AiAssistant } from "@/components/results/AiAssistant";
 import { TopIssuesPreview } from "@/components/results/TopIssuesPreview";
+import { trackEvent } from "@/lib/analytics/gtag";
 import type { Plan } from "@/lib/plans";
 
 export default function ResultsClient({
@@ -297,6 +298,21 @@ export default function ResultsClient({
                       On the free plan you&apos;ll see high-level issues. Upgrade to
                       unlock full historical views and CSV/PDF exports.
                     </p>
+                  )}
+
+                  {!isAuthenticated && (
+                    <Link
+                      href={`/sign-up?scanId=${scan.id}`}
+                      onClick={() =>
+                        trackEvent("signup_cta_click", {
+                          location: "results_save_scan",
+                          scanId: scan.id,
+                        })
+                      }
+                      className="mt-2 inline-flex items-center justify-center rounded-lg border border-emerald-500/70 bg-emerald-500/10 px-3 py-2 font-semibold text-emerald-200 hover:border-emerald-400 hover:bg-emerald-500/20"
+                    >
+                      Save this scan & create free account
+                    </Link>
                   )}
                 </div>
               </aside>
