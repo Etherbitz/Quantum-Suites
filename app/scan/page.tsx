@@ -157,11 +157,32 @@ export default function ScanPage() {
           body: JSON.stringify({ url: normalizedUrl }),
         });
 
-        if (!fallback.ok) {
-          throw new Error("Scan failed. Please try again.");
+        let fallbackPayload: ScanCreateResponse | null = null;
+        try {
+          fallbackPayload = (await fallback.json()) as ScanCreateResponse;
+        } catch {
+          fallbackPayload = null;
         }
 
-        const { scanId } = await fallback.json();
+        if (!fallback.ok) {
+          const mapped = mapScanError(
+            fallbackPayload?.error,
+            fallbackPayload?.reason
+          );
+
+          trackEvent("scan_error", {
+            url: normalizedUrl,
+            source: "scan_page_anonymous_fallback",
+            error: fallbackPayload?.error ?? mapped.title,
+            reason: fallbackPayload?.reason ?? mapped.message,
+            status: fallback.status,
+          });
+
+          setError(mapped);
+          return;
+        }
+
+        const { scanId } = fallbackPayload ?? {};
         // GA4: anonymous scan completed immediately without polling
         trackEvent("scan_complete", {
           url: normalizedUrl,
