@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
-import { createScan, ScanServiceError } from "@/services/scanService";
+import { createScan, executeScan, ScanServiceError } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -58,6 +58,9 @@ export async function POST(req: Request) {
       userId: user.id,
       url: normalizedUrl,
     });
+
+    // Run the scan synchronously so users see results immediately.
+    await executeScan(scanJob.id);
 
     return NextResponse.json({
       scanId: scanJob.id,

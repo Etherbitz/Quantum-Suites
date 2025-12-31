@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PLANS } from "@/lib/plans";
-import { queueScanJob } from "@/services/scanService";
+import { queueScanJob, executeScan } from "@/services/scanService";
 
 export const runtime = "nodejs";
 
@@ -135,8 +135,11 @@ export async function POST(req: Request) {
       userId: anonUser.id,
       websiteId: website.id,
       type: "anonymous",
-      autoStart: true,
     });
+
+    // Execute anonymous scans synchronously so the caller
+    // can immediately poll for a completed result.
+    await executeScan(job.id);
 
     return NextResponse.json({ scanId: job.id });
   } catch (error) {

@@ -26,6 +26,7 @@ export async function GET(req: Request) {
   const queuedJobs = await prisma.scanJob.findMany({
     where: {
       status: "QUEUED",
+      type: "scheduled",
     },
     orderBy: {
       createdAt: "asc",
