@@ -15,12 +15,6 @@ interface QueueScanJobParams {
   websiteId: string;
   type: ScanJobType;
   status?: ScanStatus;
-  /**
-   * Fire-and-forget execution of the scan job.
-   * Routes usually want this to be true so HTTP
-   * responses are not blocked by the scan.
-   */
-  autoStart?: boolean;
 }
 
 export type ScanServiceErrorCode =
@@ -50,7 +44,6 @@ export async function queueScanJob({
   websiteId,
   type,
   status = "QUEUED",
-  autoStart = true,
 }: QueueScanJobParams): Promise<ScanJob> {
   const scanJob = await prisma.scanJob.create({
     data: {
@@ -60,13 +53,6 @@ export async function queueScanJob({
       status,
     },
   });
-
-  if (autoStart) {
-    // Intentionally not awaited  we don&apos;t want
-    // HTTP requests or cron handlers to block on
-    // a full scan.
-    void executeScan(scanJob.id);
-  }
 
   return scanJob;
 }
