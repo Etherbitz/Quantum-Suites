@@ -21,7 +21,7 @@ export function PricingCard({
 }) {
   return (
     <div
-      className={`relative flex h-full min-w-[260px] flex-col rounded-2xl border p-8 transition-all duration-300 ${
+      className={`relative flex h-full min-w-65 flex-col rounded-2xl border p-8 transition-all duration-300 ${
         highlight
           ? "border-blue-500 bg-linear-to-b from-blue-50 via-white to-blue-50 shadow-xl md:min-h-115 md:scale-[1.03] hover:scale-[1.05] hover:-translate-y-2 hover:shadow-[0_26px_70px_rgba(37,99,235,0.5)]"
           : "border-gray-200 bg-white md:min-h-105 hover:border-blue-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(15,23,42,0.12)]"
