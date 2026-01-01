@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { PLANS } from "@/lib/plans";
 import { queueScanJob, executeScan } from "@/services/scanService";
 
 export const runtime = "nodejs";
@@ -96,8 +95,13 @@ export async function POST(req: Request) {
     });
 
     // Lightweight abuse protection: cap anonymous scans per hour
-    const anonPlan = PLANS.free;
-    if (anonPlan.rateLimitPerHour && anonPlan.rateLimitPerHour > 0) {
+    // NOTE: Anonymous scans are attached to a shared user. Using plan limits here
+    // would rate-limit the entire site (e.g. free plan = 3/hr). Instead, use a
+    // dedicated env var so we can tune this safely.
+    const anonRateLimitPerHour = Number(
+      process.env.ANON_SCAN_RATE_LIMIT_PER_HOUR ?? "30"
+    );
+    if (Number.isFinite(anonRateLimitPerHour) && anonRateLimitPerHour > 0) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
       const recentAnonScans = await prisma.scanJob.count({
@@ -109,7 +113,7 @@ export async function POST(req: Request) {
         },
       });
 
-      if (recentAnonScans >= anonPlan.rateLimitPerHour) {
+      if (recentAnonScans >= anonRateLimitPerHour) {
         return NextResponse.json(
           { error: "EXECUTION_RATE_LIMIT" },
           { status: 429 }
