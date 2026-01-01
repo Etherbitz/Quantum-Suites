@@ -2,6 +2,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { queueScanJob, executeScan } from "@/services/scanService";
 
+function normalizeHttpUrl(raw: unknown): string {
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (!trimmed) return "";
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  let parsed: URL;
+  try {
+    parsed = new URL(withScheme);
+  } catch {
+    return "";
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+  return parsed.toString();
+}
+
 export const runtime = "nodejs";
 
 /**
@@ -50,7 +66,7 @@ export async function POST(req: Request) {
   try {
     const { url } = (await req.json()) as { url?: string };
 
-    const normalizedUrl = typeof url === "string" ? url.trim() : "";
+    const normalizedUrl = normalizeHttpUrl(url);
 
     if (!normalizedUrl) {
       return NextResponse.json(
@@ -59,15 +75,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let parsed: URL;
-    try {
-      parsed = new URL(normalizedUrl);
-    } catch {
-      return NextResponse.json(
-        { error: "INVALID_URL", reason: "URL could not be parsed" },
-        { status: 400 }
-      );
-    }
+    const parsed = new URL(normalizedUrl);
 
     if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
       return NextResponse.json(

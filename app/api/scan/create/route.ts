@@ -3,6 +3,22 @@ import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
 import { createScan, executeScan, ScanServiceError } from "@/services/scanService";
 
+function normalizeHttpUrl(raw: unknown): string {
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (!trimmed) return "";
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  let parsed: URL;
+  try {
+    parsed = new URL(withScheme);
+  } catch {
+    return "";
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+  return parsed.toString();
+}
+
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -24,7 +40,7 @@ export async function POST(req: Request) {
 
     const { url } = await req.json();
 
-    const normalizedUrl = typeof url === "string" ? url.trim() : "";
+    const normalizedUrl = normalizeHttpUrl(url);
 
     if (!normalizedUrl) {
       return NextResponse.json(
@@ -33,16 +49,8 @@ export async function POST(req: Request) {
       );
     }
 
-    let hostname = "";
-    try {
-      hostname = new URL(normalizedUrl).hostname;
-    } catch (parseErr) {
-      console.error("SCAN_URL_PARSE_FAILED", parseErr);
-      return NextResponse.json(
-        { error: "INVALID_URL", reason: "URL could not be parsed" },
-        { status: 400 }
-      );
-    }
+    const parsedUrl = new URL(normalizedUrl);
+    const hostname = parsedUrl.hostname;
 
     if (hostname === "localhost" || hostname === "127.0.0.1") {
       return NextResponse.json(
