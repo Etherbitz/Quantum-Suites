@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { SiteLogo } from "@/components/common/SiteLogo";
 import { HeaderAuth } from "@/components/common/HeaderAuth";
 import { HeaderNav } from "@/components/common/HeaderNav";
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { CookieBanner } from "@/components/common/CookieBanner";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import "./globals.css";
@@ -54,6 +55,31 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <AnalyticsProvider />
           </Suspense>
+
+          <Script id="google-translate-init" strategy="afterInteractive">
+            {`
+              window.googleTranslateElementInit = function googleTranslateElementInit() {
+                try {
+                  if (!window.google || !window.google.translate || !window.google.translate.TranslateElement) return;
+                  new window.google.translate.TranslateElement(
+                    {
+                      pageLanguage: 'en',
+                      autoDisplay: false,
+                      includedLanguages: 'en,es,fr,de,pt,it,ja,zh-CN'
+                    },
+                    'google_translate_element'
+                  );
+                } catch (e) {
+                  // no-op
+                }
+              };
+            `}
+          </Script>
+          <Script
+            src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+            strategy="afterInteractive"
+          />
+
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
             strategy="afterInteractive"
@@ -73,7 +99,10 @@ export default function RootLayout({
               <SiteLogo />
               <HeaderNav />
 
-              <HeaderAuth />
+              <div className="flex items-center gap-3">
+                <LanguageSwitcher />
+                <HeaderAuth />
+              </div>
             </div>
           </header>
           {children}
@@ -96,9 +125,19 @@ export default function RootLayout({
               </nav>
             </div>
           </footer>
+
+          {/* Google Translate mounts here (kept hidden; we provide our own selector UI). */}
+          <div id="google_translate_element" style={{ display: "none" }} />
           <CookieBanner />
         </body>
       </html>
     </ClerkProvider>
   );
+}
+
+declare global {
+  interface Window {
+    googleTranslateElementInit?: () => void;
+    google?: any;
+  }
 }

@@ -68,5 +68,29 @@ body {
   animation: fade-in 0.25s ease-out;
 }
 
+/*
+  Google Translate UI
+  We mount the translate element hidden and provide our own language selector.
+  Hide the default banner/frames so the page doesn't get a top offset and we
+  don't show the embedded widget in the corner.
+*/
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-gadget,
+.goog-te-gadget-simple,
+.goog-te-menu-frame,
+iframe.goog-te-menu-frame,
+iframe.skiptranslate,
+.goog-te-spinner-pos,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
 
 
