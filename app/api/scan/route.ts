@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { queueScanJob, executeScan } from "@/services/scanService";
+import * as Sentry from "@sentry/nextjs";
 
 function normalizeHttpUrl(raw: unknown): string {
   const trimmed = typeof raw === "string" ? raw.trim() : "";
@@ -122,6 +123,20 @@ export async function POST(req: Request) {
       });
 
       if (recentAnonScans >= anonRateLimitPerHour) {
+        // Emit a lightweight Sentry signal when this starts happening.
+        // Sample to the first time we hit the cap so it doesn't spam.
+        if (recentAnonScans === anonRateLimitPerHour) {
+          Sentry.withScope((scope) => {
+            scope.setLevel("warning");
+            scope.setTag("rate_limit", "anon_scan_per_hour");
+            scope.setTag("route", "/api/scan");
+            scope.setExtra("recentAnonScans", recentAnonScans);
+            scope.setExtra("limitPerHour", anonRateLimitPerHour);
+            scope.setExtra("hostname", parsed.hostname);
+            Sentry.captureMessage("ANON_SCAN_RATE_LIMIT");
+          });
+        }
+
         return NextResponse.json(
           { error: "EXECUTION_RATE_LIMIT" },
           { status: 429 }
