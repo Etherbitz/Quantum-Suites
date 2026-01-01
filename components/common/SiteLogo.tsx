@@ -40,7 +40,7 @@ export function SiteLogo() {
       <Link
         href="/"
         aria-label="Quantum Suites AI home"
-        className="flex flex-col leading-tight transition hover:opacity-90"
+        className="hidden flex-col leading-tight transition hover:opacity-90 sm:flex"
       >
         <span className="text-sm font-semibold tracking-tight text-white">
           Quantum
