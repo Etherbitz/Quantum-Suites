@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { UsageMeter } from "@/components/common/UsageMeter";
 import { useScanJobPolling } from "@/components/scan/useScanJobPolling";
 import { trackEvent } from "@/lib/analytics/gtag";

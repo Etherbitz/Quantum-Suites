@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
@@ -103,7 +102,7 @@ export default function SignUpPage() {
               },
             }}
             signInUrl="/sign-in"
-            afterSignUpUrl={redirectUrl}
+            afterSignUpUrl="/sign-up/complete"
             afterSignInUrl={redirectUrl}
           />
         </div>

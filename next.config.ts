@@ -61,6 +61,17 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: "host",
+            value: "quantumsuites-ai.com",
+          },
+        ],
+        destination: "https://www.quantumsuites-ai.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
             value: "quantum-suites-ai.vercel.app",
           },
         ],
@@ -69,10 +80,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
-
-const sentryWebpackPluginOptions = {
-  silent: true,
 };
 
 export default withSentryConfig(nextConfig, {

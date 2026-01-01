@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import { PricingCard } from "@/components/features/pricing";
 import { PricingFreeCta, PricingFooterScanCta } from "@/components/features/pricing/PricingCtas";
 import { UpgradeButton } from "@/components/common/UpgradeButton";
