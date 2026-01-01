@@ -263,11 +263,15 @@ export default function ScanPage() {
                   </div>
                   <input
                     id="url"
-                    type="url"
+                    type="text"
+                    inputMode="url"
                     required
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://example.com"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     className="w-full rounded-xl border-2 border-gray-300 pl-12 pr-4 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                   />
                 </div>
