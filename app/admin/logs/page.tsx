@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/adminGuard";
 import { prisma } from "@/lib/db";
 import { ActivityLogBulkActions } from "@/components/admin/ActivityLogBulkActions";
 import { ActivityLogRowActions } from "@/components/admin/ActivityLogRowActions";
+import { ClientDateTime } from "@/components/common/ClientDateTime";
 
 export default async function AdminLogsPage({
   searchParams,
@@ -147,7 +148,7 @@ export default async function AdminLogsPage({
                   className="border-b border-neutral-900/60 last:border-0 hover:bg-neutral-900/60"
                 >
                   <td className="px-3 py-2 text-[11px] text-neutral-400">
-                    {job.createdAt.toLocaleString()}
+                    <ClientDateTime value={job.createdAt.toISOString()} />
                   </td>
                   <td className="px-3 py-2 text-xs capitalize text-neutral-100">
                     {job.status.toLowerCase()}

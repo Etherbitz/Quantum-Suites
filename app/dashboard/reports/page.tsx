@@ -32,6 +32,7 @@ export default async function ReportsPage({
 
   const planKey = (user.plan in PLANS ? user.plan : "free") as Plan;
   const canExportAuditTrail = !!PLANS[planKey].auditTrail;
+  const canExportReports = !!PLANS[planKey].detailedReports;
 
   const fromParam = searchParams?.from ?? "";
   const toParam = searchParams?.to ?? "";
@@ -109,62 +110,62 @@ export default async function ReportsPage({
           </p>
         </div>
 
-        {canExportAuditTrail && (
-          <div className="flex flex-col items-end gap-3 text-[11px] text-neutral-400">
-            <form
-              method="GET"
-              className="flex flex-wrap items-center justify-end gap-2 text-[11px] text-neutral-400"
+        <div className="flex flex-col items-end gap-3 text-[11px] text-neutral-400">
+          <form
+            method="GET"
+            className="flex flex-wrap items-center justify-end gap-2 text-[11px] text-neutral-400"
+          >
+            <label className="flex items-center gap-1">
+              <span className="text-neutral-500">From</span>
+              <input
+                type="date"
+                name="from"
+                defaultValue={fromParam}
+                className="h-7 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 focus:border-neutral-600 focus:outline-none"
+              />
+            </label>
+            <label className="flex items-center gap-1">
+              <span className="text-neutral-500">To</span>
+              <input
+                type="date"
+                name="to"
+                defaultValue={toParam}
+                className="h-7 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 focus:border-neutral-600 focus:outline-none"
+              />
+            </label>
+            <label className="flex items-center gap-1">
+              <span className="text-neutral-500">Website</span>
+              <input
+                type="text"
+                name="website"
+                placeholder="example.com"
+                defaultValue={websiteFilter}
+                className="h-7 w-32 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none md:w-40"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-md border border-neutral-700 px-3 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-900"
             >
-              <label className="flex items-center gap-1">
-                <span className="text-neutral-500">From</span>
-                <input
-                  type="date"
-                  name="from"
-                  defaultValue={fromParam}
-                  className="h-7 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 focus:border-neutral-600 focus:outline-none"
-                />
-              </label>
-              <label className="flex items-center gap-1">
-                <span className="text-neutral-500">To</span>
-                <input
-                  type="date"
-                  name="to"
-                  defaultValue={toParam}
-                  className="h-7 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 focus:border-neutral-600 focus:outline-none"
-                />
-              </label>
-              <label className="flex items-center gap-1">
-                <span className="text-neutral-500">Website</span>
-                <input
-                  type="text"
-                  name="website"
-                  placeholder="example.com"
-                  defaultValue={websiteFilter}
-                  className="h-7 w-32 rounded-md border border-neutral-800 bg-neutral-950 px-2 text-[11px] text-neutral-100 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none md:w-40"
-                />
-              </label>
-              <button
-                type="submit"
-                className="rounded-md border border-neutral-700 px-3 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-900"
+              Apply filters
+            </button>
+            {(fromParam || toParam || websiteFilter) && (
+              <a
+                href="/dashboard/reports"
+                className="text-[11px] text-neutral-500 hover:text-neutral-300"
               >
-                Apply filters
-              </button>
-              {(fromParam || toParam || websiteFilter) && (
-                <a
-                  href="/dashboard/reports"
-                  className="text-[11px] text-neutral-500 hover:text-neutral-300"
-                >
-                  Clear
-                </a>
-              )}
-            </form>
-            <ReportsExportDropdown
-              from={fromParam}
-              to={toParam}
-              website={websiteFilter}
-            />
-          </div>
-        )}
+                Clear
+              </a>
+            )}
+          </form>
+          <ReportsExportDropdown
+            from={fromParam}
+            to={toParam}
+            website={websiteFilter}
+            canExport={canExportReports}
+            canExportAuditTrail={canExportAuditTrail}
+          />
+        </div>
       </div>
 
       <div className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
@@ -202,7 +203,12 @@ export default async function ReportsPage({
             Filter below, then download per-scan CSV or HTML as needed.
           </p>
         </div>
-        <ScanHistory scans={scans} showFilter />
+        <ScanHistory
+          scans={scans}
+          showFilter
+          canExport={canExportReports}
+          showExportUpsell={!canExportReports}
+        />
       </div>
     </div>
   );

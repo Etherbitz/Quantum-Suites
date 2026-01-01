@@ -21,6 +21,8 @@ type ScanJob = {
 interface ScanHistoryProps {
   scans: ScanJob[];
   showFilter?: boolean;
+  canExport?: boolean;
+  showExportUpsell?: boolean;
 }
 
 /**
@@ -41,7 +43,12 @@ function getRiskStyles(level: "low" | "medium" | "high" | "pending") {
   }
 }
 
-export default function ScanHistory({ scans, showFilter = false }: ScanHistoryProps) {
+export default function ScanHistory({
+  scans,
+  showFilter = false,
+  canExport = true,
+  showExportUpsell = false,
+}: ScanHistoryProps) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<ScanJob[]>(scans);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -220,26 +227,60 @@ export default function ScanHistory({ scans, showFilter = false }: ScanHistoryPr
                   </div>
                 </div>
                 <div className="flex gap-1 text-[11px]">
-                  <a
-                    href={`/api/reports/export?reports=1&audit=1&scanId=${encodeURIComponent(
-                      scan.id
-                    )}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
-                  >
-                    <Download className="h-3 w-3" />
-                    <span>CSV</span>
-                  </a>
-                  <a
-                    href={`/api/reports/export-html?scanId=${encodeURIComponent(
-                      scan.id
-                    )}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
-                    title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
-                  >
-                    <Download className="h-3 w-3" />
-                    <span>HTML</span>
-                  </a>
+                  {canExport ? (
+                    <>
+                      <a
+                        href={`/api/reports/export?reports=1&audit=1&scanId=${encodeURIComponent(
+                          scan.id
+                        )}`}
+                        className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>CSV</span>
+                      </a>
+                      <a
+                        href={`/api/reports/export-html?scanId=${encodeURIComponent(
+                          scan.id
+                        )}`}
+                        className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                        title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>HTML</span>
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950 px-2.5 py-1 text-[11px] font-medium text-neutral-500 opacity-80"
+                        title="Upgrade to unlock exports"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>CSV</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950 px-2.5 py-1 text-[11px] font-medium text-neutral-500 opacity-80"
+                        title="Upgrade to unlock exports"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>HTML</span>
+                      </button>
+                    </>
+                  )}
                 </div>
+
+                {!canExport && showExportUpsell && (
+                  <Link
+                    href="/pricing"
+                    className="text-[11px] font-medium text-blue-400 hover:underline"
+                  >
+                    Upgrade to unlock exports
+                  </Link>
+                )}
               </div>
             </div>
 

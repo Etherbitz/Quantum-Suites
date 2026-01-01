@@ -346,7 +346,11 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
-        <ScanHistory scans={currentPeriod} />
+        <ScanHistory
+          scans={currentPeriod}
+          canExport={hasFeature(plan, "detailedReports")}
+          showExportUpsell={!hasFeature(plan, "detailedReports")}
+        />
       </section>
 
       {hasFeature(plan, "continuousMonitoring") && websites.length > 0 && (

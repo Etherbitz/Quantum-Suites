@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 import { trackEvent } from "@/lib/analytics/track";
 import { getComplianceRisk } from "@/lib/compliance";
 
@@ -36,7 +37,8 @@ export function WebsitesList(
     websites,
     variant = "dark",
     showExports = false,
-  }: WebsitesListProps & { showExports?: boolean }
+    canExport = true,
+  }: WebsitesListProps & { showExports?: boolean; canExport?: boolean }
 ) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -179,7 +181,7 @@ export function WebsitesList(
               )}
             </div>
             <div className="flex items-center gap-2">
-              {showExports && site.lastScanAt && site.lastScanId && (
+              {showExports && site.lastScanAt && site.lastScanId && canExport && (
                 <div className="relative text-[10px]">
                   <button
                     type="button"
@@ -214,6 +216,25 @@ export function WebsitesList(
                       </a>
                     </div>
                   )}
+                </div>
+              )}
+
+              {showExports && site.lastScanAt && site.lastScanId && !canExport && (
+                <div className="flex flex-col items-end gap-1">
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex items-center rounded-full border border-neutral-800 bg-neutral-950 px-3 py-0.5 text-[10px] font-semibold text-neutral-500 opacity-80"
+                    title="Upgrade to unlock exports"
+                  >
+                    Download
+                  </button>
+                  <Link
+                    href="/pricing"
+                    className="text-[10px] font-medium text-blue-400 hover:underline"
+                  >
+                    Upgrade to export
+                  </Link>
                 </div>
               )}
             </div>

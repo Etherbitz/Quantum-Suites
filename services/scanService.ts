@@ -24,14 +24,25 @@ export type ScanServiceErrorCode =
 
 export class ScanServiceError extends Error {
   code: ScanServiceErrorCode;
+  meta?: Record<string, unknown>;
 
-  constructor(code: ScanServiceErrorCode, message?: string) {
+  constructor(
+    code: ScanServiceErrorCode,
+    message?: string,
+    meta?: Record<string, unknown>
+  ) {
     super(message ?? code);
     this.code = code;
+    this.meta = meta;
   }
 }
 
 const PUBLIC_ANON_CLERK_ID = "public-anonymous" as const;
+
+// If a serverless invocation is killed mid-scan, jobs can remain RUNNING.
+// Treat very old RUNNING jobs as stale for concurrency calculations so
+// customers can still start new scans.
+const STALE_RUNNING_JOB_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
  * Central place to create and kick off scan jobs.
@@ -129,13 +140,28 @@ export async function createScan({
       },
     }));
 
-  const lastJob = await prisma.scanJob.findFirst({
-    where: { websiteId: website.id },
+  const lastCompletedJob = await prisma.scanJob.findFirst({
+    where: { websiteId: website.id, status: "COMPLETED" },
     orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
   });
 
-  if (!canScanNow(planKey, lastJob?.createdAt ?? null)) {
-    throw new ScanServiceError("SCAN_FREQUENCY_LIMIT");
+  if (!canScanNow(planKey, lastCompletedJob?.createdAt ?? null)) {
+    const lastAt = lastCompletedJob?.createdAt ?? null;
+    const nextAllowedAt = lastAt
+      ? new Date(
+          lastAt.getTime() +
+            (PLANS[planKey].scanFrequency === "weekly"
+              ? 7 * 24 * 60 * 60 * 1000
+              : 24 * 60 * 60 * 1000)
+        )
+      : null;
+
+    throw new ScanServiceError(
+      "SCAN_FREQUENCY_LIMIT",
+      undefined,
+      nextAllowedAt ? { nextAllowedAt: nextAllowedAt.toISOString() } : undefined
+    );
   }
 
   const scanJob = await queueScanJob({
@@ -307,12 +333,14 @@ export async function executeScan(scanJobId: string): Promise<{
     const maxConcurrent = PLANS[planKey].maxConcurrentScans;
 
     if (maxConcurrent && maxConcurrent !== Infinity) {
+      const staleCutoff = new Date(Date.now() - STALE_RUNNING_JOB_MS);
       const activeJobs = await prisma.scanJob.count({
         where: {
           userId: job.userId,
           status: {
             in: ["RUNNING"],
           },
+          OR: [{ startedAt: null }, { startedAt: { gte: staleCutoff } }],
           id: {
             not: job.id,
           },

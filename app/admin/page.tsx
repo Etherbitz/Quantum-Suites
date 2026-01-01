@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getAdminMetrics } from "./data";
 import { ScansOverTimeChart, ScoreDistributionChart } from "@/components/admin";
+import { ClientDateTime } from "@/components/common/ClientDateTime";
 
 function getTenureDays(createdAt: Date): number {
   return Math.max(
@@ -218,7 +219,7 @@ export default async function AdminDashboard() {
                         {scan.website?.url ?? "Unknown website"}
                       </p>
                       <p className="mt-0.5 text-[10px] text-neutral-500">
-                        {scan.createdAt.toLocaleString()}
+                        <ClientDateTime value={scan.createdAt.toISOString()} />
                       </p>
                     </div>
                     <div className="flex items-center gap-2 text-right">

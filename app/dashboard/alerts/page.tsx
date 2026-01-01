@@ -47,6 +47,7 @@ export default async function AlertsPage() {
     user.alertDropThreshold ?? planAlerts.dropThreshold;
 
   const alertsEnabledByPlan = hasFeature(planKey, "changeAlerts");
+  const canExportReports = hasFeature(planKey, "detailedReports");
 
   return (
     <div className="space-y-6">
@@ -169,21 +170,50 @@ export default async function AlertsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-[11px]">
-            <a
-              href="/api/reports/export?audit=1"
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
-            >
-              <span>Export CSV</span>
-            </a>
-            <a
-              href="/api/reports/export-html"
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
-              title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
-            >
-              <span>Export HTML/PDF</span>
-            </a>
+            {canExportReports ? (
+              <>
+                <a
+                  href="/api/reports/export?audit=1"
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                >
+                  <span>Export CSV</span>
+                </a>
+                <a
+                  href="/api/reports/export-html"
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 font-medium text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800"
+                  title="Opens a printable HTML report; use your browser's Print menu to save as PDF."
+                >
+                  <span>Export HTML/PDF</span>
+                </a>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950 px-3 py-1 font-medium text-neutral-500 opacity-80"
+                  title="Upgrade to unlock exports"
+                >
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950 px-3 py-1 font-medium text-neutral-500 opacity-80"
+                  title="Upgrade to unlock exports"
+                >
+                  <span>Export HTML/PDF</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
+
+        {!canExportReports && (
+          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-xs text-neutral-300">
+            <UpgradeCTA reason="Exports are available on the Business and Agency plans." />
+          </div>
+        )}
 
         <AlertsTable
           alerts={alerts.map((alert) => ({

@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/adminGuard";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { RerunScanButton } from "@/components/admin";
+import { ClientDateTime } from "@/components/common/ClientDateTime";
 
 export default async function AdminScanInspector({
   params,
@@ -51,7 +52,7 @@ export default async function AdminScanInspector({
         <Info label="User" value={scan.user?.email ?? "anonymous"} />
         <Info
           label="Created"
-          value={scan.createdAt.toLocaleString()}
+          value={<ClientDateTime value={scan.createdAt.toISOString()} />}
         />
       </div>
 
@@ -99,7 +100,13 @@ export default async function AdminScanInspector({
                     className="border-b border-neutral-900/60 last:border-0"
                   >
                     <td className="px-2 py-1 text-[11px] text-neutral-400">
-                      {new Date(log.createdAt).toLocaleString()}
+                      <ClientDateTime
+                        value={
+                          typeof log.createdAt === "string"
+                            ? log.createdAt
+                            : new Date(log.createdAt).toISOString()
+                        }
+                      />
                     </td>
                     <td className="px-2 py-1 text-[11px] text-neutral-100">
                       {log.phase}

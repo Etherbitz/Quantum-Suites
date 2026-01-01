@@ -22,7 +22,6 @@ export async function GET(req: Request) {
       userId,
       clerkUser.emailAddresses[0].emailAddress
     );
-
     const rawPlan = typeof user.plan === "string" ? user.plan.toLowerCase() : "free";
     const planKey: Plan =
       rawPlan === "starter" ||
@@ -30,6 +29,19 @@ export async function GET(req: Request) {
       rawPlan === "agency"
         ? (rawPlan as Plan)
         : "free";
+
+    const canExportReports = Boolean(PLANS[planKey].detailedReports);
+
+    if (!canExportReports) {
+      return NextResponse.json(
+        {
+          error: "EXPORTS_LOCKED",
+          reason: "Upgrade to Business or Agency to export reports.",
+        },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     let includeReports = searchParams.get("reports") !== null;
     const includeAudit = searchParams.get("audit") !== null;

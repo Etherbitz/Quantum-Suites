@@ -8,6 +8,7 @@ type UsageData = {
   plan: string;
   websitesUsed: number;
   websitesLimit: number;
+  scanFrequency?: string;
 };
 
 export function UsageMeter() {
@@ -55,6 +56,12 @@ export function UsageMeter() {
           {unlimited ? "∞" : limitValue} websites
         </span>
       </div>
+
+      {data.scanFrequency && (
+        <div className="text-xs text-neutral-500">
+          Scan frequency: <span className="capitalize">{data.scanFrequency}</span>
+        </div>
+      )}
 
       {!unlimited && (
         <div className="w-full h-2 bg-muted rounded overflow-hidden">

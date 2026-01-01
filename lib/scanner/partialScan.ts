@@ -45,10 +45,16 @@ export async function runPartialScan(url: string): Promise<PartialScanResult> {
 
   // 3) robots.txt presence
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     const res = await fetch(`${u.origin}/robots.txt`, {
       redirect: "follow",
+      signal: controller.signal,
       headers: { "User-Agent": "Mozilla/5.0" },
     });
+
+    clearTimeout(timeoutId);
 
     checks.push({
       id: "robots",

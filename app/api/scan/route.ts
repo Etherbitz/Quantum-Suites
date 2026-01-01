@@ -20,6 +20,7 @@ function normalizeHttpUrl(raw: unknown): string {
 }
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * GET /api/scan?scanId=xxx  → returns current scan status

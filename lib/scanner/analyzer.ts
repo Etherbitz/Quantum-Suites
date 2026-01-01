@@ -7,7 +7,7 @@
 import type { PageContent } from "@/lib/scanner/types";
 
 export class WebsiteAnalyzer {
-  private timeout: number = 15000; // 15 seconds timeout safeguard
+  private timeout: number = 10000; // 10 seconds timeout safeguard
 
   async fetchPage(url: string): Promise<PageContent> {
     const startTime = Date.now();

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/adminGuard";
+import { ClientDateTime } from "@/components/common/ClientDateTime";
 
 export default async function AdminScansPage() {
   await requireAdmin();
@@ -60,7 +61,7 @@ export default async function AdminScansPage() {
                   {scan.score ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-neutral-400">
-                  {scan.createdAt.toLocaleString()}
+                  <ClientDateTime value={scan.createdAt.toISOString()} />
                 </td>
               </tr>
             ))}

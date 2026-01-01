@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
 import { createScan, executeScan, ScanServiceError } from "@/services/scanService";
+import { prisma } from "@/lib/db";
 
 function normalizeHttpUrl(raw: unknown): string {
   const trimmed = typeof raw === "string" ? raw.trim() : "";
@@ -20,23 +21,34 @@ function normalizeHttpUrl(raw: unknown): string {
 }
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     const clerkUser = await currentUser();
 
-    if (!userId || !clerkUser?.emailAddresses?.[0]?.emailAddress) {
+    if (!userId) {
       return NextResponse.json(
         { error: "UNAUTHENTICATED" },
         { status: 401 }
       );
     }
 
-    const user = await getOrCreateUser(
-      userId,
-      clerkUser.emailAddresses[0].emailAddress
-    );
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const user = email
+      ? await getOrCreateUser(userId, email)
+      : await prisma.user.findUnique({
+          where: { clerkId: userId },
+          select: { id: true },
+        });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "UNAUTHENTICATED", reason: "Missing email for new user" },
+        { status: 401 }
+      );
+    }
 
     const { url } = await req.json();
 
@@ -84,7 +96,13 @@ export async function POST(req: Request) {
 
       if (err.code === "SCAN_FREQUENCY_LIMIT") {
         return NextResponse.json(
-          { error: "SCAN_FREQUENCY_LIMIT" },
+          {
+            error: "SCAN_FREQUENCY_LIMIT",
+            nextAllowedAt:
+              typeof err.meta?.nextAllowedAt === "string"
+                ? err.meta.nextAllowedAt
+                : null,
+          },
           { status: 429 }
         );
       }

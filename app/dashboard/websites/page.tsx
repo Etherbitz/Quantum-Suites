@@ -69,6 +69,7 @@ export default async function WebsitesPage() {
               };
             })}
             showExports
+            canExport={hasFeature(planKey, "detailedReports")}
           />
         </div>
       </section>

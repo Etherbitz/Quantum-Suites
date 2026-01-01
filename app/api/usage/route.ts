@@ -24,16 +24,24 @@ export async function GET() {
     const { userId } = await auth();
     const clerkUser = await currentUser();
 
-    if (!userId || !clerkUser?.emailAddresses?.[0]?.emailAddress) {
+    if (!userId) {
       return NextResponse.json({
         authenticated: false,
       });
     }
 
-    const user = await getOrCreateUser(
-      userId,
-      clerkUser.emailAddresses[0].emailAddress
-    );
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    const user = email
+      ? await getOrCreateUser(userId, email)
+      : await prisma.user.findUnique({
+          where: { clerkId: userId },
+        });
+
+    if (!user) {
+      return NextResponse.json({
+        authenticated: false,
+      });
+    }
 
     const rawPlan = typeof user.plan === "string" ? user.plan.toLowerCase() : "free";
     const plan: Plan =
@@ -56,6 +64,7 @@ export async function GET() {
       // JSON does not support Infinity; encode unlimited as -1
       websitesLimit:
         limits.websites === Infinity ? -1 : limits.websites,
+      scanFrequency: limits.scanFrequency,
     });
   } catch (error) {
     console.error("usage route error", error);

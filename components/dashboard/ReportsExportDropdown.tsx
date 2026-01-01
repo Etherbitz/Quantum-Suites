@@ -2,17 +2,22 @@
 
 import { useState } from "react";
 import { Download, ChevronDown } from "lucide-react";
+import { UpgradeCTA } from "@/components/common/UpgradeCTA";
 
 interface ReportsExportDropdownProps {
   from: string;
   to: string;
   website: string;
+  canExport: boolean;
+  canExportAuditTrail: boolean;
 }
 
 export function ReportsExportDropdown({
   from,
   to,
   website,
+  canExport,
+  canExportAuditTrail,
 }: ReportsExportDropdownProps) {
   const [open, setOpen] = useState(false);
   const [includeReports, setIncludeReports] = useState(true);
@@ -49,6 +54,7 @@ export function ReportsExportDropdown({
               type="checkbox"
               checked={includeReports}
               onChange={(e) => setIncludeReports(e.target.checked)}
+              disabled={!canExport}
               className="h-3 w-3 rounded border-neutral-700 bg-neutral-950 text-blue-500"
             />
             <span>Reports</span>
@@ -58,6 +64,7 @@ export function ReportsExportDropdown({
               type="checkbox"
               checked={includeAudit}
               onChange={(e) => setIncludeAudit(e.target.checked)}
+              disabled={!canExport || !canExportAuditTrail}
               className="h-3 w-3 rounded border-neutral-700 bg-neutral-950 text-blue-500"
             />
             <span>Audit trail</span>
@@ -69,7 +76,8 @@ export function ReportsExportDropdown({
             type="button"
             onClick={() => setOpen((v) => !v)}
             onBlur={() => setTimeout(() => setOpen(false), 100)}
-            className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-3 py-1.5 font-medium text-neutral-900 hover:bg-white"
+            disabled={!canExport}
+            className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-3 py-1.5 font-medium text-neutral-900 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Download className="h-3 w-3" />
             <span>Export</span>
@@ -96,6 +104,12 @@ export function ReportsExportDropdown({
           )}
         </div>
       </div>
+
+      {!canExport && (
+        <div className="w-full">
+          <UpgradeCTA reason="Exports are available on Business and Agency plans." />
+        </div>
+      )}
     </div>
   );
 }

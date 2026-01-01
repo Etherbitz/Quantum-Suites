@@ -64,12 +64,12 @@ export default function RootLayout({
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}', { debug_mode: true });
+              gtag('config', '${GA_MEASUREMENT_ID}', { debug_mode: ${process.env.NODE_ENV === "development" ? "true" : "false"} });
               ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}');` : ""}
             `}
           </Script>
           <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 sm:py-3">
               <SiteLogo />
               <HeaderNav />
 

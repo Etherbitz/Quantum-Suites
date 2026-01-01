@@ -32,6 +32,18 @@ export async function GET(req: Request) {
         ? (rawPlan as Plan)
         : "free";
 
+    const canExportReports = Boolean(PLANS[planKey].detailedReports);
+
+    if (!canExportReports) {
+      return NextResponse.json(
+        {
+          error: "EXPORTS_LOCKED",
+          reason: "Upgrade to Business or Agency to export reports.",
+        },
+        { status: 403 }
+      );
+    }
+
     const canAudit = !!PLANS[planKey].auditTrail;
 
     const { searchParams } = new URL(req.url);

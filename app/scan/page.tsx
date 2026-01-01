@@ -12,6 +12,7 @@ type ScanCreateResponse = {
   scanId?: string;
   error?: string;
   reason?: string;
+  nextAllowedAt?: string | null;
 };
 
 type ScanError = {
@@ -23,7 +24,11 @@ type ScanError = {
 
 const isDev = process.env.NODE_ENV === "development";
 
-function mapScanError(error?: string | null, reason?: string | null): ScanError {
+function mapScanError(
+  error?: string | null,
+  reason?: string | null,
+  nextAllowedAt?: string | null
+): ScanError {
   const combined = `${error ?? ""} ${reason ?? ""}`.toUpperCase();
 
   switch (error) {
@@ -44,13 +49,23 @@ function mapScanError(error?: string | null, reason?: string | null): ScanError 
       };
 
     case "SCAN_FREQUENCY_LIMIT":
+      {
+        const retryText =
+          nextAllowedAt && !Number.isNaN(new Date(nextAllowedAt).getTime())
+            ? ` Try again at ${new Intl.DateTimeFormat(undefined, {
+                dateStyle: "short",
+                timeStyle: "short",
+              }).format(new Date(nextAllowedAt))}.`
+            : "";
+
       return {
         title: "Scan frequency limit reached",
         message:
-          "You recently scanned this site. Please wait before running another scan on this plan, or upgrade for more frequent checks.",
+          `You recently completed a scan for this site on your current plan.${retryText} Upgrade for more frequent checks.`,
         ctaLabel: "View Plans",
         ctaHref: "/pricing",
       };
+      }
 
     case "EXECUTION_RATE_LIMIT":
       return {
@@ -192,7 +207,11 @@ export default function ScanPage() {
         return;
       }
 
-      const mapped = mapScanError(payload?.error, payload?.reason);
+      const mapped = mapScanError(
+        payload?.error,
+        payload?.reason,
+        payload?.nextAllowedAt
+      );
       // GA4: scan failed to start due to a handled API error
       trackEvent("scan_error", {
         url: normalizedUrl,
