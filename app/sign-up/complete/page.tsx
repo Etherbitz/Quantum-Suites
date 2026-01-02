@@ -5,10 +5,19 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { OnboardingFlow } from "@/components/features/onboarding/OnboardFlow";
 import { trackEvent } from "@/lib/analytics/track";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpCompletePage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const scanId = searchParams.get("scanId");
+  const redirectUrl = searchParams.get("redirect_url");
+
+  const postSignupTarget =
+    redirectUrl ??
+    (scanId ? `/scan/results?scanId=${encodeURIComponent(scanId)}` : "/dashboard");
+
   const [isInitializing, setIsInitializing] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +50,35 @@ export default function SignUpCompletePage() {
           plan: data.user.plan,
         });
 
+        // If the user just came from an anonymous scan, attach it now so it
+        // appears in their dashboard/history.
+        if (scanId) {
+          try {
+            const attachRes = await fetch("/api/scan/attach", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ scanId }),
+            });
+
+            await trackEvent("scan_attach_attempt", {
+              scanId,
+              ok: attachRes.ok,
+              status: attachRes.status,
+            });
+          } catch (attachErr) {
+            console.error("ATTACH_SCAN_CLIENT_FAILED", attachErr);
+            await trackEvent("scan_attach_attempt", {
+              scanId,
+              ok: false,
+              status: -1,
+            });
+          }
+
+          // Get them back to the scan they just ran (fastest value moment).
+          router.replace(postSignupTarget);
+          return;
+        }
+
         setIsInitializing(false);
         setShowOnboarding(true);
       } catch (err) {
@@ -55,7 +93,7 @@ export default function SignUpCompletePage() {
     }
 
     initializeUser();
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, router, scanId, postSignupTarget]);
 
   const handleOnboardingComplete = async () => {
     // Track onboarding completion

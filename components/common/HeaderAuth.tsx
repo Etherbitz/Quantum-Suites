@@ -21,7 +21,7 @@ export function HeaderAuth() {
         </Link>
         <Link
           href="/scan"
-          className="rounded-full bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-[0_12px_35px_rgba(37,99,235,0.7)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(37,99,235,0.9)] sm:text-sm"
+          className="inline-flex items-center justify-center rounded-full bg-linear-to-r from-blue-600 via-cyan-500 to-blue-600 px-4 py-1.5 text-center text-xs font-semibold text-white shadow-[0_12px_35px_rgba(37,99,235,0.7)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(37,99,235,0.9)] sm:text-sm"
           onClick={() =>
             trackEvent("signup_cta_click", {
               location: "header_start_free",

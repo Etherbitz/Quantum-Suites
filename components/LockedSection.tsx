@@ -17,6 +17,8 @@ export function LockedSection({
   plan?: Plan;
 }) {
   const resolvedPlan: Plan = plan ?? "free";
+  const resultsUrl = `/scan/results?scanId=${encodeURIComponent(scanId)}`;
+  const signupUrl = `/sign-up?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(resultsUrl)}`;
 
   // Anonymous visitor: encourage account creation to see more
   if (!isAuthenticated) {
@@ -32,7 +34,7 @@ export function LockedSection({
         </p>
 
         <Link
-          href={`/sign-up?scanId=${scanId}`}
+          href={signupUrl}
           className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
         >
           Create Free Account

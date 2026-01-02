@@ -26,6 +26,11 @@ export async function POST(req: Request) {
       clerkUser.emailAddresses[0].emailAddress
     );
 
+    const anonUser = await prisma.user.findUnique({
+      where: { clerkId: "public-anonymous" },
+      select: { id: true },
+    });
+
     const scanJob = await prisma.scanJob.findUnique({
       where: { id: scanId },
       select: { id: true, userId: true, type: true },
@@ -35,8 +40,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "SCAN_NOT_FOUND" }, { status: 404 });
     }
 
-    // If this scan already belongs to another user, do not allow re-attach.
-    if (scanJob.userId && scanJob.userId !== user.id) {
+    const isOwnedByPublicAnon =
+      !!anonUser?.id && scanJob.userId === anonUser.id;
+
+    // Allow attaching scans that are either:
+    // - unowned (userId is null), or
+    // - owned by the shared public-anonymous user.
+    // Disallow attaching scans owned by any other user.
+    if (scanJob.userId && scanJob.userId !== user.id && !isOwnedByPublicAnon) {
       return NextResponse.json({ error: "ALREADY_OWNED" }, { status: 403 });
     }
 
@@ -45,7 +56,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // Only allow attaching anonymous scans with no current owner.
+    // Only allow attaching anonymous scans.
     if (scanJob.type !== "anonymous") {
       return NextResponse.json({ error: "INVALID_SCAN_TYPE" }, { status: 400 });
     }

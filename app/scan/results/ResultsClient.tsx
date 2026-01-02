@@ -302,7 +302,7 @@ export default function ResultsClient({
 
                   {!isAuthenticated && (
                     <Link
-                      href={`/sign-up?scanId=${scan.id}`}
+                      href={`/sign-up?scanId=${encodeURIComponent(scan.id)}&redirect_url=${encodeURIComponent(`/scan/results?scanId=${encodeURIComponent(scan.id)}`)}`}
                       onClick={() =>
                         trackEvent("signup_cta_click", {
                           location: "results_save_scan",

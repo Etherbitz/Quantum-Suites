@@ -8,13 +8,14 @@ import { ClientDateTime } from "@/components/common/ClientDateTime";
 export default async function AdminScanInspector({
   params,
 }: {
-  params: { scanId: string };
+  params: Promise<{ scanId: string }>;
 }) {
+  const resolvedParams = await params;
   await requireAdmin();
 
   const [scan, executionLogs] = await Promise.all([
     prisma.scanJob.findUnique({
-      where: { id: params.scanId },
+      where: { id: resolvedParams.scanId },
       include: {
         user: { select: { email: true } },
         website: { select: { url: true } },
@@ -23,7 +24,7 @@ export default async function AdminScanInspector({
     // Use a loose cast so this compiles before Prisma client is regenerated
     (prisma as any).scanExecutionLog
       ?.findMany?.({
-        where: { scanJobId: params.scanId },
+        where: { scanJobId: resolvedParams.scanId },
         orderBy: { createdAt: "desc" },
         take: 20,
       })

@@ -8,18 +8,29 @@ import { trackEvent } from "@/lib/analytics/gtag";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url") ?? "/dashboard";
+  const scanId = searchParams.get("scanId");
+  const explicitRedirectUrl = searchParams.get("redirect_url");
+
+  const redirectUrl =
+    explicitRedirectUrl ??
+    (scanId ? `/scan/results?scanId=${encodeURIComponent(scanId)}` : "/dashboard");
+
+  const afterSignUpUrl = scanId
+    ? `/sign-up/complete?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/sign-up/complete";
 
   useEffect(() => {
     // GA4: detailed signup funnel instrumentation
     trackEvent("signup_page_view", {
       redirectUrl,
+      scanId,
     });
 
     trackEvent("signup_form_visible", {
       redirectUrl,
+      scanId,
     });
-  }, [redirectUrl]);
+  }, [redirectUrl, scanId]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -102,7 +113,7 @@ export default function SignUpPage() {
               },
             }}
             signInUrl="/sign-in"
-            afterSignUpUrl="/sign-up/complete"
+            afterSignUpUrl={afterSignUpUrl}
             afterSignInUrl={redirectUrl}
           />
         </div>
