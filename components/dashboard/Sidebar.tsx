@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
         { href: "/admin/users", label: "Customers" },
         { href: "/admin/plans", label: "Plans & billing" },
         { href: "/admin/logs", label: "Activity log" },
-        { href: "/dashboard/admin/checklist", label: "Funnel checklist" },
+        { href: "/dashboard/admin/checklist", label: "Testing" },
         { href: "/dashboard/analytics", label: "Analytics" },
         { href: "/admin/reports", label: "Reports & exports" },
       ]

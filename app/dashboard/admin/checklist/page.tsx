@@ -11,11 +11,10 @@ export default async function DashboardAdminFunnelChecklistPage() {
           Admin · Diagnostics
         </p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Funnel checklist
+          Testing
         </h1>
         <p className="mt-1 text-xs text-neutral-500">
-          Fast verification for the critical user journey: auth → anonymous scan →
-          attach-on-signup.
+          Quick tests for the critical user journey: auth → anonymous scan → attach-on-signup.
         </p>
       </header>
 

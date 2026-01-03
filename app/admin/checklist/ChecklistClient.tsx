@@ -269,6 +269,29 @@ export default function ChecklistClient() {
         )}
       </div>
 
+      <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 text-xs text-neutral-300">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          Automated checks
+        </p>
+        <p className="mt-2 text-[11px] text-neutral-500">
+          Run these locally before deploying to catch obvious regressions.
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Lint</div>
+            <div className="mt-1 font-mono text-[11px] text-neutral-100 break-all">npm run lint</div>
+          </div>
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Build</div>
+            <div className="mt-1 font-mono text-[11px] text-neutral-100 break-all">npm run build</div>
+          </div>
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-3">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">Cron (prod)</div>
+            <div className="mt-1 font-mono text-[11px] text-neutral-100 break-all">GET /api/cron/scans?secret=CRON_SECRET</div>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
