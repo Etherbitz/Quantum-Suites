@@ -6,13 +6,15 @@ import { AdminPlanTool, AdminCustomerPlanTool } from "@/components/admin";
 export default async function AdminPlansPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const admin = await requireAdmin();
 
-  const emailParam = searchParams?.email;
-  const idParam = searchParams?.id;
-  const clerkIdParam = searchParams?.clerkId;
+  const resolvedSearchParams = await searchParams;
+
+  const emailParam = resolvedSearchParams?.email;
+  const idParam = resolvedSearchParams?.id;
+  const clerkIdParam = resolvedSearchParams?.clerkId;
 
   const email = typeof emailParam === "string" ? emailParam : "";
   const id = typeof idParam === "string" ? idParam : "";

@@ -5,13 +5,15 @@ import { prisma } from "@/lib/db";
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const admin = await requireAdmin();
 
-  const qRaw = searchParams?.q;
-  const planFilterRaw = searchParams?.plan;
-  const roleFilterRaw = searchParams?.role;
+  const resolvedSearchParams = await searchParams;
+
+  const qRaw = resolvedSearchParams?.q;
+  const planFilterRaw = resolvedSearchParams?.plan;
+  const roleFilterRaw = resolvedSearchParams?.role;
 
   const q = typeof qRaw === "string" ? qRaw.trim() : "";
   const planFilter =

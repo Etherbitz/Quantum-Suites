@@ -8,12 +8,14 @@ import { ClientDateTime } from "@/components/common/ClientDateTime";
 export default async function AdminLogsPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireAdmin();
 
-  const qRaw = searchParams?.q;
-  const statusRaw = searchParams?.status;
+  const resolvedSearchParams = await searchParams;
+
+  const qRaw = resolvedSearchParams?.q;
+  const statusRaw = resolvedSearchParams?.status;
 
   const q = typeof qRaw === "string" ? qRaw.trim() : "";
   const statusFilter =
