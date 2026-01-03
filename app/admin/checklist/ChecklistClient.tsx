@@ -65,12 +65,54 @@ export default function ChecklistClient() {
   const normalizedOrigin = normalizeBaseUrl(origin);
   const normalizedAppUrl = normalizeBaseUrl(appUrl);
 
+  const tryParseAbsoluteUrl = (value: string) => {
+    try {
+      return new URL(value);
+    } catch {
+      return null;
+    }
+  };
+
+  const domainWarning = useMemo(() => {
+    if (!origin || !appUrl) return null;
+
+    const originUrl = tryParseAbsoluteUrl(origin);
+    const appBaseUrl = tryParseAbsoluteUrl(appUrl);
+
+    if (!originUrl || !appBaseUrl) {
+      return normalizedOrigin !== normalizedAppUrl
+        ? "Warning: origin ≠ NEXT_PUBLIC_APP_URL. This often breaks Clerk/Stripe redirects."
+        : null;
+    }
+
+    const originHost = originUrl.host.toLowerCase();
+    const appHost = appBaseUrl.host.toLowerCase();
+    const originProtocol = originUrl.protocol.toLowerCase();
+    const appProtocol = appBaseUrl.protocol.toLowerCase();
+
+    if (originHost !== appHost) {
+      return `Warning: host mismatch (origin ${originHost} vs NEXT_PUBLIC_APP_URL ${appHost}). This often breaks Clerk/Stripe redirects.`;
+    }
+
+    if (originProtocol !== appProtocol) {
+      return `Warning: scheme mismatch (origin ${originProtocol} vs NEXT_PUBLIC_APP_URL ${appProtocol}). Set NEXT_PUBLIC_APP_URL to ${originUrl.protocol}//${originHost}.`;
+    }
+
+    return null;
+  }, [origin, appUrl, normalizedOrigin, normalizedAppUrl]);
+
   const recommendedCanonical = "https://www.quantumsuites-ai.com";
 
   const signupUrl = useMemo(() => {
     if (!scanId) return "";
     const resultsUrl = `/scan/results?scanId=${encodeURIComponent(scanId)}`;
     return `/sign-up?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(resultsUrl)}`;
+  }, [scanId]);
+
+  const signinUrl = useMemo(() => {
+    if (!scanId) return "";
+    const resultsUrl = `/scan/results?scanId=${encodeURIComponent(scanId)}`;
+    return `/sign-in?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(resultsUrl)}`;
   }, [scanId]);
 
   async function runAuthCheck() {
@@ -222,10 +264,8 @@ export default function ChecklistClient() {
             <div className="mt-1 font-mono text-[11px] text-neutral-100 break-all">{recommendedCanonical}</div>
           </div>
         </div>
-        {normalizedOrigin && normalizedAppUrl && normalizedOrigin !== normalizedAppUrl && (
-          <p className="mt-2 text-[11px] text-amber-300">
-            Warning: origin ≠ NEXT_PUBLIC_APP_URL. This often breaks Clerk/Stripe redirects.
-          </p>
+        {domainWarning && (
+          <p className="mt-2 text-[11px] text-amber-300">{domainWarning}</p>
         )}
       </div>
 
@@ -348,7 +388,17 @@ export default function ChecklistClient() {
                 rel="noreferrer"
                 className="rounded-md border border-neutral-700 bg-neutral-950 px-2 py-1 text-[11px] font-semibold text-neutral-200 hover:border-neutral-500"
               >
-                Open
+                Open signup
+              </a>
+            )}
+            {signinUrl && (
+              <a
+                href={signinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-md border border-neutral-700 bg-neutral-950 px-2 py-1 text-[11px] font-semibold text-neutral-200 hover:border-neutral-500"
+              >
+                Open sign-in
               </a>
             )}
           </div>

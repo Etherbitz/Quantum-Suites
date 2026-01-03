@@ -19,6 +19,12 @@ export default function SignUpPage() {
     ? `/sign-up/complete?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(redirectUrl)}`
     : "/sign-up/complete";
 
+  const signInUrl = scanId
+    ? `/sign-in?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/sign-in";
+
+  const afterSignInUrl = scanId ? afterSignUpUrl : redirectUrl;
+
   useEffect(() => {
     // GA4: detailed signup funnel instrumentation
     trackEvent("signup_page_view", {
@@ -112,9 +118,9 @@ export default function SignUpPage() {
                 dividerText: "text-neutral-500",
               },
             }}
-            signInUrl="/sign-in"
+            signInUrl={signInUrl}
             afterSignUpUrl={afterSignUpUrl}
-            afterSignInUrl={redirectUrl}
+            afterSignInUrl={afterSignInUrl}
           />
         </div>
       </section>

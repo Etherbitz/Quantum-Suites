@@ -3,8 +3,29 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { SignIn } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
+  const searchParams = useSearchParams();
+  const scanId = searchParams.get("scanId");
+  const explicitRedirectUrl = searchParams.get("redirect_url");
+
+  const redirectUrl =
+    explicitRedirectUrl ??
+    (scanId
+      ? `/scan/results?scanId=${encodeURIComponent(scanId)}`
+      : "/dashboard");
+
+  // If we're signing in after an anonymous scan, route through the existing
+  // completion handler so we attach the scan to the user before redirecting.
+  const postSignInUrl = scanId
+    ? `/sign-up/complete?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    : redirectUrl;
+
+  const signUpUrl = scanId
+    ? `/sign-up?scanId=${encodeURIComponent(scanId)}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/sign-up";
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center gap-10 px-6 py-10 md:flex-row md:items-stretch">
@@ -59,7 +80,7 @@ export default function SignInPage() {
 
           <div className="flex flex-col gap-3 pt-1 sm:flex-row">
             <Link
-              href="/sign-up"
+              href={signUpUrl}
               className="inline-flex flex-1 items-center justify-center rounded-full border border-neutral-700 bg-neutral-950/60 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(15,23,42,0.7)] transition hover:border-neutral-500 hover:bg-neutral-900"
             >
               Create a free account
@@ -104,8 +125,8 @@ export default function SignInPage() {
                 dividerText: "text-neutral-500",
               },
             }}
-            signUpUrl="/sign-up"
-            afterSignInUrl="/dashboard"
+            signUpUrl={signUpUrl}
+            afterSignInUrl={postSignInUrl}
           />
         </div>
       </section>

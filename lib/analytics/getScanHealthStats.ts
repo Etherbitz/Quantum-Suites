@@ -2,12 +2,14 @@ import { prisma } from "@/lib/db";
 
 export interface ScanHealthStats {
   queued: number;
+  queuedScheduled: number;
   running: number;
   completed: number;
   failed: number;
   total: number;
   errorRate: number | null;
   oldestQueuedMinutes: number | null;
+  oldestQueuedScheduledMinutes: number | null;
   byPlan: {
     free: ScanHealthStatsByPlan;
     starter: ScanHealthStatsByPlan;
@@ -42,10 +44,22 @@ export async function getScanHealthStats(
       ? new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       : new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [queued, running, completed, failed, oldestQueued, byPlanRows] =
+  const [
+    queued,
+    queuedScheduled,
+    running,
+    completed,
+    failed,
+    oldestQueued,
+    oldestQueuedScheduled,
+    byPlanRows,
+  ] =
     await Promise.all([
       prisma.scanJob.count({
         where: { status: "QUEUED" },
+      }),
+      prisma.scanJob.count({
+        where: { status: "QUEUED", type: "scheduled" },
       }),
       prisma.scanJob.count({
         where: { status: "RUNNING" },
@@ -69,6 +83,18 @@ export async function getScanHealthStats(
       prisma.scanJob.findFirst({
         where: {
           status: "QUEUED",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          createdAt: true,
+        },
+      }),
+      prisma.scanJob.findFirst({
+        where: {
+          status: "QUEUED",
+          type: "scheduled",
         },
         orderBy: {
           createdAt: "asc",
@@ -103,6 +129,16 @@ export async function getScanHealthStats(
         0,
         Math.round(
           (now.getTime() - oldestQueued.createdAt.getTime()) /
+            (60 * 1000)
+        )
+      )
+    : null;
+
+  const oldestQueuedScheduledMinutes = oldestQueuedScheduled
+    ? Math.max(
+        0,
+        Math.round(
+          (now.getTime() - oldestQueuedScheduled.createdAt.getTime()) /
             (60 * 1000)
         )
       )
@@ -159,12 +195,14 @@ export async function getScanHealthStats(
 
   return {
     queued,
+    queuedScheduled,
     running,
     completed,
     failed,
     total,
     errorRate,
     oldestQueuedMinutes,
+    oldestQueuedScheduledMinutes,
     byPlan,
   };
 }

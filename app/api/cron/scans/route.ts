@@ -19,6 +19,40 @@ export async function GET(req: Request) {
     }
   }
 
+  // Hygiene: fail stale queued jobs so they don't accumulate forever.
+  // - Non-scheduled jobs should not stay queued long.
+  // - Scheduled jobs get a longer leash, but very old ones are almost always stuck.
+  const now = new Date();
+  const NON_SCHEDULED_STALE_MS = 60 * 60 * 1000; // 60 minutes
+  const SCHEDULED_STALE_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+  const [cleanedNonScheduled, cleanedScheduled] = await Promise.all([
+    prisma.scanJob.updateMany({
+      where: {
+        status: "QUEUED",
+        type: { not: "scheduled" },
+        createdAt: { lt: new Date(now.getTime() - NON_SCHEDULED_STALE_MS) },
+      },
+      data: {
+        status: "FAILED",
+        error: "STALE_QUEUED_TIMEOUT",
+        finishedAt: now,
+      },
+    }),
+    prisma.scanJob.updateMany({
+      where: {
+        status: "QUEUED",
+        type: "scheduled",
+        createdAt: { lt: new Date(now.getTime() - SCHEDULED_STALE_MS) },
+      },
+      data: {
+        status: "FAILED",
+        error: "STALE_SCHEDULED_QUEUE_TIMEOUT",
+        finishedAt: now,
+      },
+    }),
+  ]);
+
   const { triggered } = await runDueWebsiteScans();
 
   const BATCH_SIZE = Number(process.env.SCAN_EXECUTOR_BATCH_SIZE ?? "5");
@@ -52,5 +86,9 @@ export async function GET(req: Request) {
     ok: true,
     scheduledWebsites: triggered,
     executedJobs: executed,
+    cleanedQueued: {
+      nonScheduled: cleanedNonScheduled.count,
+      scheduled: cleanedScheduled.count,
+    },
   });
 }

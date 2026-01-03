@@ -99,11 +99,16 @@ export default async function AnalyticsDashboardPage() {
             </p>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
             <MetricCard
               label="Queued scans"
               value={scanHealth.queued.toString()}
               accent={scanHealth.queued > 0 ? "amber" : "default"}
+            />
+            <MetricCard
+              label="Queued scheduled"
+              value={scanHealth.queuedScheduled.toString()}
+              accent={scanHealth.queuedScheduled > 0 ? "amber" : "default"}
             />
             <MetricCard
               label="Running scans"
@@ -160,12 +165,12 @@ export default async function AnalyticsDashboardPage() {
             />
           </div>
 
-          {scanHealth.oldestQueuedMinutes !== null && (
+          {(scanHealth.oldestQueuedScheduledMinutes ?? scanHealth.oldestQueuedMinutes) !== null && (
             <p className="mt-2 text-[11px] text-neutral-500">
-              Oldest queued job has been waiting for approximately
+              Oldest queued {scanHealth.oldestQueuedScheduledMinutes !== null ? "scheduled " : ""}job has been waiting for approximately
               {" "}
-              {scanHealth.oldestQueuedMinutes} minute
-              {scanHealth.oldestQueuedMinutes === 1 ? "" : "s"}.
+              {(scanHealth.oldestQueuedScheduledMinutes ?? scanHealth.oldestQueuedMinutes) as number} minute
+              {(scanHealth.oldestQueuedScheduledMinutes ?? scanHealth.oldestQueuedMinutes) === 1 ? "" : "s"}.
             </p>
           )}
         </section>
