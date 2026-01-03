@@ -36,28 +36,28 @@ export async function getFunnelStats(
     : undefined;
 
   const [
-    scanJobCount,
-    websiteCount,
+    scanStarts,
+    websitesTouched,
     totalUsers,
     paidUsers,
   ] = await Promise.all([
-    // Only include scan jobs from non-admin users
+    // Top-of-funnel: include anonymous activity (public-anonymous is role=USER)
+    // but exclude admin activity.
     prisma.scanJob.count({
       where: {
         createdAt: createdFilter,
         user: {
           role: "USER",
-          clerkId: { not: "public-anonymous" },
         },
       },
     }),
-    // Only include websites owned by non-admin users
+    // A proxy for "scan submitted" / "website entered".
+    // Includes anonymous websites so you see activity even before signups.
     prisma.website.count({
       where: {
         createdAt: createdFilter,
         user: {
           role: "USER",
-          clerkId: { not: "public-anonymous" },
         },
       },
     }),
@@ -81,8 +81,8 @@ export async function getFunnelStats(
   ]);
 
   const stats: FunnelStats[] = [
-    { stage: "cta_click", count: scanJobCount },
-    { stage: "scan_submit", count: websiteCount },
+    { stage: "cta_click", count: scanStarts },
+    { stage: "scan_submit", count: websitesTouched },
     { stage: "pricing_plan_selected", count: totalUsers },
     { stage: "account_created", count: totalUsers },
     { stage: "subscription_started", count: paidUsers },

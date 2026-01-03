@@ -14,17 +14,18 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const { scanId } = (await req.json()) as { scanId?: string };
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
     const clerkUser = await currentUser();
 
-    if (!scanId || !userId || !clerkUser?.emailAddresses?.[0]?.emailAddress) {
+    if (!scanId || !userId) {
       return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
     }
 
-    const user = await getOrCreateUser(
-      userId,
-      clerkUser.emailAddresses[0].emailAddress
-    );
+    const emailFromClerk = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
+    const emailFromClaims =
+      typeof (sessionClaims as any)?.email === "string" ? (sessionClaims as any).email : null;
+
+    const user = await getOrCreateUser(userId, emailFromClerk ?? emailFromClaims);
 
     const anonUser = await prisma.user.findUnique({
       where: { clerkId: "public-anonymous" },

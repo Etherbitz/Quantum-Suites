@@ -1,7 +1,9 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { trackEvent } from "@/lib/analytics/track";
+import { getOrCreateUser } from "@/lib/getOrCreateUser";
+
+export const runtime = "nodejs";
 
 /**
  * API endpoint to initialize a new user in the database after signup.
@@ -9,30 +11,22 @@ import { trackEvent } from "@/lib/analytics/track";
  */
 export async function POST() {
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
     const clerkUser = await currentUser();
 
-    if (!userId || !clerkUser?.emailAddresses?.[0]?.emailAddress) {
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthenticated" },
         { status: 401 }
       );
     }
 
-    const email = clerkUser.emailAddresses[0].emailAddress;
+    const emailFromClerk = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
+    const emailFromClaims =
+      typeof (sessionClaims as any)?.email === "string" ? (sessionClaims as any).email : null;
 
-    // Create or update user record
-    const user = await prisma.user.upsert({
-      where: { clerkId: userId },
-      update: {
-        email,
-      },
-      create: {
-        clerkId: userId,
-        email,
-        plan: "free",
-      },
-    });
+    // Create/update user record even if email is unavailable (fallback email will be used).
+    const user = await getOrCreateUser(userId, emailFromClerk ?? emailFromClaims);
 
     // Track signup event
     await trackEvent("user_signup_completed", {

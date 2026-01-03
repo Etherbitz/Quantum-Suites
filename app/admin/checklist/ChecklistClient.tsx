@@ -61,6 +61,10 @@ export default function ChecklistClient() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
+  const normalizeBaseUrl = (value: string) => value.trim().replace(/\/+$/, "").toLowerCase();
+  const normalizedOrigin = normalizeBaseUrl(origin);
+  const normalizedAppUrl = normalizeBaseUrl(appUrl);
+
   const recommendedCanonical = "https://www.quantumsuites-ai.com";
 
   const signupUrl = useMemo(() => {
@@ -218,7 +222,7 @@ export default function ChecklistClient() {
             <div className="mt-1 font-mono text-[11px] text-neutral-100 break-all">{recommendedCanonical}</div>
           </div>
         </div>
-        {origin && appUrl && origin !== appUrl && (
+        {normalizedOrigin && normalizedAppUrl && normalizedOrigin !== normalizedAppUrl && (
           <p className="mt-2 text-[11px] text-amber-300">
             Warning: origin ≠ NEXT_PUBLIC_APP_URL. This often breaks Clerk/Stripe redirects.
           </p>

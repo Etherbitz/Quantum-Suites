@@ -2,7 +2,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/getOrCreateUser";
 import { NextResponse } from "next/server";
 import { createScan, executeScan, ScanServiceError } from "@/services/scanService";
-import { prisma } from "@/lib/db";
 
 function normalizeHttpUrl(raw: unknown): string {
   const trimmed = typeof raw === "string" ? raw.trim() : "";
@@ -25,7 +24,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const { userId, sessionClaims } = await auth();
     const clerkUser = await currentUser();
 
     if (!userId) {
@@ -35,20 +34,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const email = clerkUser?.emailAddresses?.[0]?.emailAddress;
-    const user = email
-      ? await getOrCreateUser(userId, email)
-      : await prisma.user.findUnique({
-          where: { clerkId: userId },
-          select: { id: true },
-        });
+    const emailFromClerk = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
+    const emailFromClaims =
+      typeof (sessionClaims as any)?.email === "string" ? (sessionClaims as any).email : null;
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "UNAUTHENTICATED", reason: "Missing email for new user" },
-        { status: 401 }
-      );
-    }
+    const user = await getOrCreateUser(userId, emailFromClerk ?? emailFromClaims);
 
     const { url } = await req.json();
 

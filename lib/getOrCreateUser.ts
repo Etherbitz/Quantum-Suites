@@ -3,9 +3,12 @@ import type { User } from "@prisma/client";
 
 export async function getOrCreateUser(
   clerkId: string,
-  email: string
+  email?: string | null
 ): Promise<User> {
-  const normalizedEmail = email.toLowerCase();
+  const normalizedEmail =
+    typeof email === "string" && email.trim().length > 0
+      ? email.trim().toLowerCase()
+      : null;
 
   const isAdminEmail =
     normalizedEmail === "admin@quantumsuites-ai.com";
@@ -19,34 +22,40 @@ export async function getOrCreateUser(
     return prisma.user.update({
       where: { id: existingByClerk.id },
       data: {
-        email: normalizedEmail,
-        ...(isAdminEmail && { role: "ADMIN" }),
+        ...(normalizedEmail ? { email: normalizedEmail } : {}),
+        ...(isAdminEmail && { role: "ADMIN", plan: "agency" }),
       },
     });
   }
 
   // 2) Otherwise, try to reuse an existing record with this email
   //    so we never create multiple accounts for the same address.
-  const existingByEmail = await prisma.user.findFirst({
-    where: { email: normalizedEmail },
-  });
-
-  if (existingByEmail) {
-    return prisma.user.update({
-      where: { id: existingByEmail.id },
-      data: {
-        clerkId,
-        email: normalizedEmail,
-        ...(isAdminEmail && { role: "ADMIN" }),
-      },
+  if (normalizedEmail) {
+    const existingByEmail = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
     });
+
+    if (existingByEmail) {
+      return prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: {
+          clerkId,
+          email: normalizedEmail,
+          ...(isAdminEmail && { role: "ADMIN", plan: "agency" }),
+        },
+      });
+    }
   }
 
   // 3) No existing user — create a new one.
+  // Some Clerk configurations allow sign-in without an email (e.g. phone/passkey).
+  // We still need a stable email-like identifier for our DB record.
+  const fallbackEmail = normalizedEmail ?? `${clerkId}@users.quantumsuites-ai.invalid`;
+
   return prisma.user.create({
     data: {
       clerkId,
-      email: normalizedEmail,
+      email: fallbackEmail,
       plan: isAdminEmail ? "agency" : "free",
       role: isAdminEmail ? "ADMIN" : "USER",
     },
