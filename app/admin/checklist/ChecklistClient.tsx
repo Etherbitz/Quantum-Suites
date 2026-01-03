@@ -360,13 +360,24 @@ export default function ChecklistClient() {
           <div className="flex items-center gap-2">
             <Badge state={attachCheck} />
             <button
-              onClick={runAttachCheck}
-              className="rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-emerald-400"
+              onClick={scanId ? runAttachCheck : undefined}
+              disabled={!scanId}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                scanId
+                  ? "bg-emerald-500 text-emerald-950 hover:bg-emerald-400"
+                  : "cursor-not-allowed bg-neutral-800 text-neutral-400"
+              }`}
             >
               Run
             </button>
           </div>
         </div>
+
+        {!scanId && (
+          <p className="mt-2 text-[11px] text-neutral-500">
+            Run Step 2 first to generate a <span className="font-mono">scanId</span>.
+          </p>
+        )}
 
         {attachCheck.status !== "idle" && getDetail(attachCheck) && (
           <p className="mt-2 text-[11px] text-neutral-400">{getDetail(attachCheck)}</p>
